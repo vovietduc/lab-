@@ -1,103 +1,115 @@
-# FashionMNIST Classification (Lab 1)
+# FashionMNIST Classification – So sánh MLP và CNN
 
-## 1. Project Overview
-Dự án huấn luyện mô hình Deep Learning phân loại ảnh quần áo trong bộ dữ liệu FashionMNIST bằng PyTorch. Mô hình chính gồm **Backbone ResNet-18 (pretrained) + MLP Task Head**, được so sánh với baseline MLP thuần. Mục tiêu: xây dựng pipeline đầy đủ (dữ liệu → mô hình → huấn luyện → đánh giá → lưu/nạp model) theo cấu trúc modular.
+Dự án thực hành Chapter 2 – Artificial Neural Networks. Mục tiêu là xây dựng và so sánh hai kiến trúc neural network bằng PyTorch trên FashionMNIST: Multi-Layer Perceptron (MLP) và Convolutional Neural Network (CNN). Cả hai được huấn luyện từ đầu; dự án không sử dụng ResNet hay trọng số pretrained.
 
-## 2. Problem Statement
-- **Bài toán:** phân loại ảnh xám 28×28 vào 10 lớp (T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot).
-- **Đầu vào:** tensor `(B, 1, 28, 28)`. **Đầu ra:** logits `(B, 10)`.
-- **Thách thức:** các lớp áo rất giống nhau; ảnh nhỏ và ít chi tiết. Chi tiết xem `project_description.md`.
+## 1. Mục tiêu học tập
+- Làm quen với Tensor, Dataset, DataLoader và tiền xử lý dữ liệu trong PyTorch.
+- Hiểu forward pass, CrossEntropyLoss, backpropagation và optimizer.
+- Xây dựng hai mô hình MLP và CNN cho phân loại ảnh 10 lớp.
+- Theo dõi train/validation loss và accuracy.
+- Lưu checkpoint, nạp lại mô hình và dự đoán ảnh.
+- So sánh hiệu quả và chi phí tính toán của hai kiến trúc.
 
-## 3. Main Features
-- Kiến trúc modular (`dataset.py`, `model.py`, `train.py`, `evaluate.py`, `predict.py`).
-- Cấu hình bằng YAML, đổi mô hình hoặc siêu tham số không cần sửa code.
-- Mixed Precision (AMP) khi có GPU, Early Stopping, lưu checkpoint tốt nhất theo validation.
-- Logging và báo cáo tự động: đường cong loss/accuracy, confusion matrix, ảnh dự đoán, metrics JSON.
-- Smoke Run, Dry Run và unit test (pytest).
+## 2. Dữ liệu FashionMNIST
+FashionMNIST có 70.000 ảnh grayscale kích thước 28×28 thuộc 10 lớp: T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag và Ankle boot. Dữ liệu gồm 60.000 ảnh train gốc và 10.000 ảnh test. Tập train gốc được chia thành 50.000 ảnh train và 10.000 ảnh validation với seed 42. Tập test được giữ riêng để đánh giá cuối cùng.
 
-## 4. System Architecture
-```
-FashionMNIST ──► Dataset/DataLoader ──► Model (Backbone → Head) ──► Trainer ──► Checkpoint (.pth)
-(torchvision)    (split, normalize)     ResNet-18 + MLP             Loss, Adam,         │
-                                                                    Early Stopping      ▼
-                                                           Evaluate ──► reports/ (biểu đồ, metrics)
-```
-Chi tiết kiến trúc và quyết định thiết kế: `project_design.md`.
+Input tensor có shape (B, 1, 28, 28), được chuẩn hóa bằng mean/std tính trên tập train. Output của mỗi mô hình là 10 logits.
 
-## 5. Folder Structure
-```
-fashionmnist_lab/
-├── configs/  (default.yaml, mlp.yaml)
-├── src/      (dataset.py, model.py, train.py, evaluate.py, predict.py, utils.py)
-├── tests/    (test_dataset.py, test_model.py, test_train_smoke.py)
-├── notebooks/ (phân tích dữ liệu và thử nghiệm)
-├── reports/  (kết quả sinh ra khi chạy)
-├── project_description.md, project_design.md, README.md, AI_usage.md
-└── fashion_mnist_model.pth   (sinh ra sau khi train)
-```
+## 3. Mô hình
 
-## 6. Installation / Run / Test
-```bash
-# Môi trường (khuyến nghị cài PyTorch bản CUDA theo pytorch.org/get-started/locally)
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+### MLP
+Ảnh 28×28 được Flatten thành vector 784 chiều. Kiến trúc mặc định: Linear(784,256) → ReLU → Dropout → Linear(256,128) → ReLU → Dropout → Linear(128,10). MLP đơn giản, dễ huấn luyện nhưng không giữ cấu trúc không gian sau khi Flatten.
 
-# 1) Smoke Run: truyền tensor giả / vài ảnh để bắt lỗi shape
-python -m src.model
-python -m src.dataset
+### CNN
+CNN giữ ảnh ở dạng 2D và học đặc trưng không gian bằng convolution. Kiến trúc gồm ba tầng convolution với 32, 64 và 128 kênh; Batch Normalization, ReLU và Max Pooling; Adaptive Average Pooling; cuối cùng là Fully Connected classifier 10 lớp.
 
-# 2) Dry Run: 1 epoch trên 50 ảnh (không ghi đè kết quả thật)
-python -m src.train --dry-run
+## 4. Quy trình huấn luyện
+1. Tải FashionMNIST bằng torchvision.
+2. Chia train/validation, chuẩn hóa ảnh và tạo DataLoader.
+3. Forward pass để tính logits.
+4. Tính CrossEntropyLoss.
+5. Gọi backward để tính gradient.
+6. Adam cập nhật trọng số.
+7. Đánh giá validation mỗi epoch và lưu checkpoint có validation accuracy tốt nhất.
+8. Đánh giá test và sinh biểu đồ, confusion matrix, ảnh dự đoán.
 
-# 3) Normal Run: huấn luyện đầy đủ, tạo fashion_mnist_model.pth và reports/resnet18/
-python -m src.train
-python -m src.train --config configs/mlp.yaml          # baseline để so sánh
+Cấu hình mặc định: seed 42, batch size 128, tối đa 15 epochs, Adam, learning rate 0.001 và Early Stopping patience 4. Cấu hình nằm trong configs/default.yaml (CNN) và configs/mlp.yaml (MLP).
 
-# 4) Đánh giá trên tập test
-python -m src.evaluate
-python -m src.evaluate --config configs/mlp.yaml
+## 5. Cấu trúc thư mục
+- configs/: cấu hình CNN và MLP.
+- src/dataset.py: tải dữ liệu, chia tập, chuẩn hóa và DataLoader.
+- src/model.py: định nghĩa MLPClassifier, CNNClassifier và build_model.
+- src/train.py: training loop, validation, early stopping và checkpoint.
+- src/evaluate.py: test metrics và trực quan hóa.
+- src/predict.py: dự đoán ảnh đơn.
+- src/utils.py: seed, đếm tham số, đo latency, lưu JSON và vẽ biểu đồ.
+- tests/: kiểm thử model, dataset và training smoke.
+- reports/cnn/: checkpoint và kết quả CNN.
+- reports/mlp/: checkpoint và kết quả MLP.
+- reports/final_report/: báo cáo Markdown và DOCX.
 
-# 5) Unit test
-pytest
-```
+## 6. Cài đặt
+Dùng Python 3.10 hoặc 3.11. Mở terminal ở thư mục fashionmnist_lab và chạy:
 
-## 7. Example Input - Output
-**Input:** tensor `(1, 1, 28, 28)` đã chuẩn hóa z-score (từ ảnh xám 28×28).
+Windows PowerShell:
+1. python -m venv .venv
+2. .venv\Scripts\Activate.ps1
+3. python -m pip install --upgrade pip
+4. pip install -r requirements.txt
 
-```bash
-python -m src.predict --image sample.png
-```
-**Output** (JSON; giá trị dưới đây chỉ minh họa định dạng, kết quả thật phụ thuộc mô hình đã train):
-```json
-{
-  "label": 9,
-  "class": "Ankle boot",
-  "confidence": 0.97,
-  "probabilities": {"T-shirt/top": 0.0, "Trouser": 0.0, "...": 0.0, "Ankle boot": 0.97}
-}
-```
+Cài phiên bản PyTorch CPU/CUDA phù hợp theo https://pytorch.org/get-started/locally/
 
-## 8. Results
-> Điền bảng sau khi chạy `src.train` và `src.evaluate` cho từng cấu hình. Số liệu lấy từ `reports/<model>/test_metrics.json` và `train_summary.json`.
+## 7. Chạy chương trình
 
-| Mô hình | Val Acc | Test Acc | Macro-F1 | Test Loss | Latency (ms/ảnh) | Peak VRAM (MB) | Tham số huấn luyện |
-|---|---|---|---|---|---|---|---|
-| MLP baseline | | | | | | | |
-| ResNet-18 + MLP head (đóng băng) | | | | | | | |
-| ResNet-18 fine-tune (tùy chọn) | | | | | | | |
+Kiểm tra nhanh:
+- python -m src.model
+- python -m src.dataset
 
-**Hình ảnh kết quả** (sinh trong `reports/<model>/`): `training_curves.png` (loss/accuracy), `confusion_matrix.png`, `predictions_random.png`, `predictions_wrong.png`.
+Dry run (một epoch trên dữ liệu nhỏ, không ghi đè kết quả thật):
+- python -m src.train --dry-run
 
-**Nhận xét** (viết sau khi có số liệu): so sánh các mô hình; cặp lớp nào bị nhầm nhiều nhất; dấu hiệu overfitting/underfitting từ đường cong loss.
+Huấn luyện CNN:
+- python -m src.train
 
-## 9. Limitations
-- Backbone pretrained trên ảnh RGB tự nhiên, còn dữ liệu là ảnh xám nhỏ phóng lên 64×64; đặc trưng đóng băng có thể chưa tối ưu.
-- Chuẩn hóa theo thống kê FashionMNIST, không theo thống kê ImageNet.
-- Chưa dùng data augmentation và learning rate scheduler.
-- Các lớp áo giống nhau vẫn là nguồn nhầm lẫn chính.
+Huấn luyện MLP:
+- python -m src.train --config configs/mlp.yaml
 
-## 10. Future Improvements
-- Fine-tuning một phần backbone với learning rate nhỏ (`freeze_backbone: false`).
-- Thêm data augmentation (lật ngang, xoay nhẹ) và LR scheduler.
-- Thử CNN nhỏ huấn luyện từ đầu, hoặc backbone khác (MobileNet, EfficientNet).
-- Theo dõi huấn luyện bằng TensorBoard.
+Đánh giá CNN và MLP:
+- python -m src.evaluate
+- python -m src.evaluate --config configs/mlp.yaml
+
+Kiểm thử:
+- pytest -q
+
+## 8. Kết quả được tạo
+Mỗi thư mục reports/cnn hoặc reports/mlp có thể chứa:
+- training_curves.png: train/validation loss và accuracy theo epoch.
+- history.json: lịch sử từng epoch.
+- train_summary.json: thời gian train, epoch tốt nhất và peak VRAM khi train.
+- test_metrics.json: test accuracy, macro-F1, test loss, latency và số tham số.
+- classification_report.txt: precision, recall, F1-score theo từng lớp.
+- confusion_matrix.png: ma trận nhầm lẫn.
+- predictions_random.png: ảnh test và nhãn dự đoán.
+- predictions_wrong.png: các ảnh dự đoán sai.
+- checkpoint .pth: trọng số mô hình cùng cấu hình và thống kê chuẩn hóa.
+
+## 9. Bảng so sánh thực nghiệm
+Chạy đầy đủ hai mô hình trước khi điền số liệu. Không sử dụng số liệu giả định.
+
+| Chỉ số | MLP | CNN |
+|---|---:|---:|
+| Validation Accuracy | Chưa chạy | Chưa chạy |
+| Test Accuracy | Chưa chạy | Chưa chạy |
+| Macro-F1 | Chưa chạy | Chưa chạy |
+| Test Loss | Chưa chạy | Chưa chạy |
+| Training time (s) | Chưa chạy | Chưa chạy |
+| Inference latency (ms/ảnh) | Chưa chạy | Chưa chạy |
+| Số tham số | Chạy script | Chạy script |
+
+Nhận xét cần dựa trên kết quả thực nghiệm: mô hình nào có accuracy và macro-F1 cao hơn; mô hình nào nhanh hơn; train/validation curves có dấu hiệu overfitting hay không; lớp nào dễ bị nhầm qua confusion matrix.
+
+## 10. Tài liệu tham khảo
+1. Fashion-MNIST: https://github.com/zalandoresearch/fashion-mnist
+2. PyTorch Tutorials: https://pytorch.org/tutorials/
+3. torch.nn: https://pytorch.org/docs/stable/nn.html
+4. Data Loading: https://pytorch.org/docs/stable/data.html
