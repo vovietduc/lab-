@@ -1,66 +1,51 @@
-# project_design.md – Thiết kế hệ thống Lab 1
+# Project Design – MLP vs CNN trên FashionMNIST
 
-## 1. Cấu trúc thư mục (Modular)
-```
-fashionmnist_lab/
-├── project_description.md      # Định nghĩa bài toán, dữ liệu, metric
-├── project_design.md           # Tài liệu này
-├── README.md                   # Báo cáo, hướng dẫn chạy, kết quả
-├── AI_usage.md                 # Nhật ký sử dụng và kiểm duyệt AI
-├── requirements.txt, pytest.ini, .gitignore
-├── configs/
-│   ├── default.yaml            # ResNet-18 + MLP head
-│   └── mlp.yaml                # Baseline MLP
-├── src/
-│   ├── dataset.py              # Data Pipeline
-│   ├── model.py                # Backbone -> Head, MLP baseline
-│   ├── train.py                # Vòng lặp huấn luyện
-│   ├── evaluate.py             # Đánh giá trên test
-│   ├── predict.py              # Suy luận một ảnh -> JSON
-│   └── utils.py                # Seed, đo lường, vẽ biểu đồ
-├── tests/                      # pytest: dataset, model, train smoke
-├── notebooks/                  # Phân tích dữ liệu và thử nghiệm (EDA)
-├── reports/                    # Biểu đồ, metrics, ảnh dự đoán (sinh ra khi chạy)
-└── fashion_mnist_model.pth     # Trọng số mô hình (sinh ra khi chạy train)
-```
+## 1. Kiến trúc tổng thể
+FashionMNIST → Dataset/Split/Normalize → DataLoader → (MLP hoặc CNN) → CrossEntropyLoss → Backpropagation/Adam → Validation/Early Stopping → Checkpoint → Test Evaluation → Metrics và biểu đồ.
 
-## 2. Luồng dữ liệu
-`FashionMNIST (torchvision) -> split train/val -> chuẩn hóa z-score (mean/std của train) -> TensorDataset -> DataLoader -> Model -> Loss -> Optimizer`
+## 2. Thiết kế dữ liệu
+- Dùng torchvision FashionMNIST.
+- Chia train/validation từ 60.000 ảnh train gốc bằng seed 42.
+- Giữ 10.000 ảnh test chuẩn độc lập.
+- Tính mean/std trên tập train và dùng cùng thống kê cho validation/test.
+- Train DataLoader shuffle=True; validation/test shuffle=False.
 
-## 3. Kiến trúc mô hình: Backbone -> Feature Vector -> Head
-- **Backbone:** ResNet-18 pretrained (ImageNet), bỏ lớp FC cuối, đầu ra vector 512 chiều.
-- **Task Head (MLP):** `Flatten -> Linear(512,256) -> ReLU -> Dropout(0.3) -> Linear(256,10)`.
-- **Tiền xử lý trong model:** phóng ảnh 28×28 lên 64×64 (bilinear), nhân 1 kênh thành 3 kênh.
-- **Chiến lược:** Feature Extraction (đóng băng backbone, chỉ train head); có thể đổi `freeze_backbone: false` để Fine-Tuning với learning rate nhỏ.
-- **Quyết định thiết kế:** khi đóng băng backbone, giữ BatchNorm ở chế độ eval để thống kê ImageNet không bị cập nhật.
+## 3. Thiết kế MLP
+Input (B,1,28,28) → Flatten → 784 features → Linear(256) → ReLU → Dropout → Linear(128) → ReLU → Dropout → Linear(10). MLP không có convolution nên không giữ quan hệ pixel lân cận sau Flatten.
 
-## 4. Huấn luyện
-| Thành phần | Lựa chọn |
+## 4. Thiết kế CNN
+Input (B,1,28,28) → Conv(1,32) → BatchNorm → ReLU → MaxPool → Conv(32,64) → BatchNorm → ReLU → MaxPool → Conv(64,128) → BatchNorm → ReLU → AdaptiveAvgPool(3,3) → Flatten → Linear(128) → ReLU → Dropout → Linear(10). CNN giữ cấu trúc không gian và học bộ lọc đặc trưng từ dữ liệu.
+
+## 5. Thiết lập huấn luyện
+| Thành phần | Thiết lập |
 |---|---|
 | Loss | CrossEntropyLoss |
-| Optimizer | Adam (lr = 1e-3), hỗ trợ AdamW, SGD |
-| Điều hòa | Dropout 0.3, Early Stopping (patience = 4), weight decay tùy chọn |
-| Hiệu năng | Mixed Precision (AMP) khi có GPU CUDA |
-| Checkpoint | Giữ trọng số có **val accuracy cao nhất**, lưu cùng cấu hình, mean, std, tên lớp vào `fashion_mnist_model.pth` |
+| Optimizer | Adam |
+| Learning rate | 0.001 |
+| Batch size | 128 |
+| Epoch tối đa | 15 |
+| Early stopping | patience = 4 |
+| Seed | 42 |
+| Checkpoint | validation accuracy tốt nhất |
 
-## 5. Bảng siêu tham số
-| Nhóm | Tham số | Nơi cấu hình |
-|---|---|---|
-| Tối ưu hóa và huấn luyện | learning rate, batch size, epochs | `train.lr`, `data.batch_size`, `train.epochs` |
-| Kiến trúc | hidden size, resize_to, freeze_backbone | `model.*` |
-| Thuật toán tối ưu | optimizer, weight decay | `train.optimizer`, `train.weight_decay` |
-| Điều hòa | dropout, patience | `model.dropout`, `train.patience` |
+## 6. Module
+- src/dataset.py: tải dữ liệu, chia tập, chuẩn hóa, DataLoader.
+- src/model.py: MLPClassifier, CNNClassifier, build_model.
+- src/train.py: training loop, validation, early stopping, checkpoint.
+- src/evaluate.py: test metrics, confusion matrix, prediction examples.
+- src/predict.py: nạp checkpoint và dự đoán ảnh mới.
+- src/utils.py: seed, đo latency, lưu JSON, vẽ hình.
+- configs/: cấu hình CNN mặc định và MLP.
+- reports/: checkpoint, metrics, biểu đồ và báo cáo.
 
-## 6. Quy trình triển khai từng module (8 bước)
-Describe → Generate → Review Code → Run (Smoke/Dry) → Normal Run → Test → Refactor → Commit
+## 7. Quy trình
+1. Smoke test: python -m src.model và python -m src.dataset.
+2. Dry run: python -m src.train --dry-run.
+3. Train CNN: python -m src.train.
+4. Train MLP: python -m src.train --config configs/mlp.yaml.
+5. Evaluate từng mô hình.
+6. Chạy pytest.
+7. Tổng hợp số liệu và hình ảnh vào reports/final_report.
 
-| Bước | Lệnh |
-|---|---|
-| Smoke Run | `python -m src.dataset` và `python -m src.model` |
-| Dry Run | `python -m src.train --dry-run` |
-| Normal Run | `python -m src.train` |
-| Test | `pytest` và `python -m src.evaluate` |
-
-## 7. Hạn chế đã biết của thiết kế
-- Backbone pretrained trên ảnh RGB tự nhiên, trong khi dữ liệu là ảnh xám nhỏ phóng lên, nên đặc trưng đóng băng có thể không tối ưu.
-- Chuẩn hóa theo thống kê của FashionMNIST, không theo thống kê ImageNet mà backbone được huấn luyện.
+## 8. Đánh giá
+Accuracy, Macro-F1, Cross-Entropy Loss, Confusion Matrix, training time, inference latency và parameter count. Không dùng số liệu minh họa làm kết quả; chỉ ghi kết quả sau khi train/evaluate thành công.
