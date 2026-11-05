@@ -1,45 +1,37 @@
-# project_description.md – Lab 1: Phân loại ảnh FashionMNIST
+# Project Description – FashionMNIST Classification
 
-## 1. Định nghĩa bài toán
-Phân loại ảnh (multi-class classification, học có giám sát): với mỗi ảnh xám 28×28 của một món đồ thời trang, dự đoán nó thuộc 1 trong 10 lớp.
+## 1. Mục tiêu
+Bài thực hành thuộc Chapter 2 – Artificial Neural Networks. Xây dựng pipeline phân loại ảnh thời trang bằng PyTorch và so sánh hai mô hình huấn luyện từ đầu: MLP (Multi-Layer Perceptron) và CNN (Convolutional Neural Network). Không sử dụng ResNet hoặc trọng số pretrained.
 
-| Nhãn | Lớp | Nhãn | Lớp |
-|---|---|---|---|
-| 0 | T-shirt/top | 5 | Sandal |
-| 1 | Trouser | 6 | Shirt |
-| 2 | Pullover | 7 | Sneaker |
-| 3 | Dress | 8 | Bag |
-| 4 | Coat | 9 | Ankle boot |
+## 2. Bài toán và dữ liệu
+Đầu vào là ảnh grayscale 28×28 thuộc FashionMNIST. Đầu ra là một trong 10 lớp: T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot. Dataset có 60.000 ảnh train gốc và 10.000 ảnh test. Chia train gốc thành 50.000 train và 10.000 validation với seed 42. Test chỉ dùng đánh giá cuối cùng.
 
-## 2. Dữ liệu
-- **Nguồn:** Fashion-MNIST (Zalando Research), tải qua `torchvision.datasets.FashionMNIST`.
-- **Quy mô:** 60.000 ảnh train gốc + 10.000 ảnh test, mỗi lớp cân bằng.
-- **Đầu vào:** tensor `float32` shape `(B, 1, 28, 28)`, đã chuẩn hóa z-score bằng mean/std của tập train.
-- **Đầu ra:** logits shape `(B, 10)`; nhãn dự đoán = `argmax`; xác suất = `softmax`.
-- **Thách thức:** các lớp áo (T-shirt/top, Shirt, Pullover, Coat) rất giống nhau; ảnh nhỏ, ít chi tiết.
+Tensor đầu vào có shape (B,1,28,28), float32, được chuẩn hóa bằng mean/std của tập train. Đầu ra là 10 logits.
 
-## 3. Chiến lược chia tập
-| Tập | Số ảnh | Tỉ lệ ≈ | Dùng để |
-|---|---|---|---|
-| Train | 50.000 | 71% | Huấn luyện |
-| Validation | 10.000 | 14% | Chọn hyperparameter, Early Stopping, chọn checkpoint |
-| Test | 10.000 | 14% | Đánh giá cuối cùng, **chỉ dùng một lần** |
+## 3. Phạm vi mô hình
+### MLP
+Flatten ảnh thành vector 784 chiều; hai hidden layers mặc định có 256 và 128 neuron; ReLU, Dropout và output 10 lớp.
 
-- Train/Val chia ngẫu nhiên từ 60.000 ảnh train gốc, cố định theo `seed = 42`.
-- Test là tập test chuẩn của FashionMNIST (cố định 10.000 ảnh), nên tỉ lệ thực tế gần với khung 60–70% / 15–20% / 15–20% chứ không trùng tuyệt đối.
-- mean/std chuẩn hóa chỉ tính trên tập train để tránh rò rỉ dữ liệu.
+### CNN
+Ba tầng convolution với số kênh 32, 64, 128; Batch Normalization, ReLU và Max Pooling; Adaptive Average Pooling và classifier 10 lớp.
 
-## 4. Hệ thống chỉ số đánh giá
-| Chỉ số | Ý nghĩa |
-|---|---|
-| Accuracy | Tỉ lệ ảnh dự đoán đúng (phù hợp vì dữ liệu cân bằng) |
-| Macro-F1 | Trung bình F1 của 10 lớp, cho thấy lớp nào yếu |
-| Loss (Cross-Entropy) | Mức sai lệch xác suất dự đoán |
-| Confusion matrix | Các cặp lớp bị nhầm lẫn |
-| Latency (ms/ảnh) | Tốc độ suy luận |
-| Peak VRAM (MB) | Bộ nhớ GPU tiêu thụ |
+## 4. Yêu cầu chức năng
+1. Tải FashionMNIST và tạo DataLoader.
+2. Xây dựng MLP và CNN có cùng định dạng đầu vào/đầu ra.
+3. Huấn luyện theo mini-batch với forward, loss, backward và optimizer.
+4. Theo dõi train/validation loss và accuracy.
+5. Lưu checkpoint tốt nhất theo validation accuracy.
+6. Đánh giá test accuracy, macro-F1 và loss.
+7. Vẽ training curves, confusion matrix và ảnh dự đoán.
+8. Nạp checkpoint để dự đoán ảnh đơn.
+9. Cung cấp README và báo cáo kết quả.
 
-## 5. Benchmark Baseline
-- **Baseline:** MLP thuần 2 lớp ẩn (256, 128) trên ảnh phẳng 784 chiều (`configs/mlp.yaml`).
-- **Mô hình chính:** Backbone ResNet-18 + MLP Head (`configs/default.yaml`).
-- **Tiêu chí:** mô hình chính phải được so sánh với baseline trên cùng tập val/test, cùng seed. Giá trị baseline thực tế được ghi ở bảng Results trong `README.md` sau khi chạy.
+## 5. Yêu cầu phi chức năng
+- Code chia module, dễ đọc và có thể chạy lại.
+- Seed cố định để tăng khả năng tái lập.
+- Cấu hình mô hình và hyperparameter trong YAML.
+- Chạy CPU; hỗ trợ CUDA nếu cài PyTorch tương ứng.
+- Không ghi số liệu trước khi thực sự chạy thí nghiệm.
+
+## 6. Tiêu chí so sánh
+Accuracy, Macro-F1, Test Loss, thời gian huấn luyện, latency suy luận, số lượng tham số và khả năng nhận diện từng lớp qua confusion matrix.
