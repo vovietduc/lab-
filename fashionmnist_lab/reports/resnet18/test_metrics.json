@@ -1,0 +1,10 @@
+{
+  "model": "resnet18",
+  "test_accuracy": 0.8905,
+  "test_macro_f1": 0.8896420825164878,
+  "test_loss": 0.31080507583618167,
+  "latency_ms_per_image": 5.868938001804054,
+  "peak_vram_mb_eval": null,
+  "params_total": 11310410,
+  "params_trainable": 133898
+}
