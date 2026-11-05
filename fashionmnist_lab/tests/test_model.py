@@ -1,18 +1,19 @@
 import pytest
 import torch
+from src.model import MLPClassifier, CNNClassifier
 
-from src.model import FashionMNISTClassifier, MLPBaseline
 
-
-@pytest.mark.parametrize("model", [FashionMNISTClassifier(pretrained=False), MLPBaseline()])
+@pytest.mark.parametrize("model", [MLPClassifier(), CNNClassifier()])
 def test_output_shape(model):
-    out = model(torch.randn(4, 1, 28, 28))
-    assert out.shape == (4, 10)
+    model.eval()
+    with torch.no_grad():
+        output = model(torch.randn(4, 1, 28, 28))
+    assert output.shape == (4, 10)
 
 
-def test_backbone_frozen_head_trainable():
-    m = FashionMNISTClassifier(pretrained=False, freeze_backbone=True)
-    assert all(not p.requires_grad for p in m.backbone.parameters())
-    assert all(p.requires_grad for p in m.head.parameters())
-    m.train()
-    assert not m.backbone.training  # BatchNorm của backbone luôn ở eval khi đóng băng
+@pytest.mark.parametrize("model", [MLPClassifier(), CNNClassifier()])
+def test_forward_batch_size_one(model):
+    model.eval()
+    with torch.no_grad():
+        output = model(torch.randn(1, 1, 28, 28))
+    assert output.shape == (1, 10)
