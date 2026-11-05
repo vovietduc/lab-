@@ -1,7 +1,4 @@
-"""Suy luận trên MỘT ảnh và in kết quả dạng JSON.
-
-Chạy: python -m src.predict --image duong_dan.png [--checkpoint fashion_mnist_model.pth]
-"""
+"""Dự đoán một ảnh bằng checkpoint đã huấn luyện."""
 import argparse
 import json
 
@@ -13,26 +10,36 @@ from src.model import build_model
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--image", required=True)
-    ap.add_argument("--checkpoint", default="fashion_mnist_model.pth")
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--image", required=True)
+    parser.add_argument("--checkpoint", default="reports/cnn/fashion_mnist_cnn.pth")
+    args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    ckpt = torch.load(args.checkpoint, map_location=device)
-    model = build_model(ckpt["config"], pretrained=False).to(device)
-    model.load_state_dict(ckpt["state_dict"])
+    checkpoint = torch.load(args.checkpoint, map_location=device)
+    model = build_model(checkpoint["config"]).to(device)
+    model.load_state_dict(checkpoint["state_dict"])
     model.eval()
 
-    img = Image.open(args.image).convert("L").resize((28, 28))          # xám, 28x28
-    x = torch.from_numpy(np.asarray(img, dtype=np.float32) / 255.0)
-    x = ((x - ckpt["mean"]) / ckpt["std"]).unsqueeze(0).unsqueeze(0).to(device)  # (1,1,28,28)
-    with torch.no_grad():
-        probs = torch.softmax(model(x), dim=1)[0].cpu().numpy()
+    image = Image.open(args.image).convert("L").resize((28, 28))
+    array = np.asarray(image, dtype=np.float32) / 255.0
+    tensor = torch.from_numpy(array)
+    tensor = ((tensor - checkpoint["mean"]) / checkpoint["std"])
+    tensor = tensor.unsqueeze(0).unsqueeze(0).to(device)
 
-    result = {"label": int(probs.argmax()), "class": ckpt["classes"][int(probs.argmax())],
-              "confidence": round(float(probs.max()), 4),
-              "probabilities": {c: round(float(p), 4) for c, p in zip(ckpt["classes"], probs)}}
+    with torch.no_grad():
+        probabilities = torch.softmax(model(tensor), dim=1)[0].cpu().numpy()
+
+    predicted = int(probabilities.argmax())
+    result = {
+        "label": predicted,
+        "class": checkpoint["classes"][predicted],
+        "confidence": round(float(probabilities[predicted]), 4),
+        "probabilities": {
+            name: round(float(prob), 4)
+            for name, prob in zip(checkpoint["classes"], probabilities)
+        },
+    }
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
