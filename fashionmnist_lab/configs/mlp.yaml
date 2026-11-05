@@ -1,4 +1,4 @@
-# Baseline: MLP thuần trên ảnh phẳng 784 chiều (dùng để so sánh)
+# MLP baseline: ảnh 28x28 được Flatten thành vector 784 chiều
 seed: 42
 data:
   root: ./data
@@ -14,7 +14,7 @@ train:
   epochs: 15
   lr: 0.001
   optimizer: adam
-  weight_decay: 0.0
+  weight_decay: 0.0001
   patience: 4
   amp: false
 output:
