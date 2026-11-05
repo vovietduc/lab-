@@ -1,25 +1,21 @@
-# Cấu hình chính: Backbone ResNet-18 (pretrained, đóng băng) + MLP Head
+# CNN thuần, huấn luyện từ đầu trên FashionMNIST
 seed: 42
 data:
   root: ./data
-  val_size: 10000        # train 50.000 / val 10.000 / test 10.000 (test chuẩn của FashionMNIST)
+  val_size: 10000
   batch_size: 128
-  num_workers: 0         # Windows/Jupyter: để 0 cho an toàn
+  num_workers: 0
 model:
-  name: resnet18         # resnet18 | mlp
-  pretrained: true
-  freeze_backbone: true  # true: Feature Extraction | false: Fine-tuning (nên giảm lr)
-  resize_to: 64          # phóng ảnh 28x28 lên 64x64 bên trong model
-  hidden_size: 256
-  dropout: 0.3
+  name: cnn
+  dropout: 0.25
   num_classes: 10
 train:
   epochs: 15
   lr: 0.001
-  optimizer: adam        # adam | adamw | sgd
-  weight_decay: 0.0
-  patience: 4            # Early Stopping
-  amp: true              # Mixed Precision (chỉ có tác dụng trên GPU CUDA)
+  optimizer: adam
+  weight_decay: 0.0001
+  patience: 4
+  amp: true
 output:
-  model_path: fashion_mnist_model.pth
-  reports_dir: reports/resnet18
+  model_path: reports/cnn/fashion_mnist_cnn.pth
+  reports_dir: reports/cnn
