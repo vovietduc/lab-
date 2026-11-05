@@ -1,115 +1,113 @@
-# FashionMNIST Classification – So sánh MLP và CNN
+# FashionMNIST Classification — MLP vs CNN
 
-Dự án thực hành Chapter 2 – Artificial Neural Networks. Mục tiêu là xây dựng và so sánh hai kiến trúc neural network bằng PyTorch trên FashionMNIST: Multi-Layer Perceptron (MLP) và Convolutional Neural Network (CNN). Cả hai được huấn luyện từ đầu; dự án không sử dụng ResNet hay trọng số pretrained.
+Bài thực hành Chapter 2 – Artificial Neural Networks (Practice 1), triển khai bằng Python và PyTorch. Phạm vi phiên bản này chỉ gồm hai mô hình MLP và CNN; ResNet18 đã được loại khỏi nội dung so sánh.
 
-## 1. Mục tiêu học tập
-- Làm quen với Tensor, Dataset, DataLoader và tiền xử lý dữ liệu trong PyTorch.
-- Hiểu forward pass, CrossEntropyLoss, backpropagation và optimizer.
-- Xây dựng hai mô hình MLP và CNN cho phân loại ảnh 10 lớp.
-- Theo dõi train/validation loss và accuracy.
-- Lưu checkpoint, nạp lại mô hình và dự đoán ảnh.
-- So sánh hiệu quả và chi phí tính toán của hai kiến trúc.
+## Mục tiêu
+- Thực hành Tensor, Dataset, DataLoader và transforms.
+- Xây dựng MLP và CNN phân loại FashionMNIST 10 lớp.
+- Hiểu training loop: forward → loss → backward → optimizer update.
+- Theo dõi train/validation loss và accuracy; đánh giá test bằng Accuracy, Precision, Recall, Macro-F1 và Confusion Matrix.
+- Lưu/nạp checkpoint, dự đoán ảnh và so sánh chất lượng với chi phí tính toán.
 
-## 2. Dữ liệu FashionMNIST
-FashionMNIST có 70.000 ảnh grayscale kích thước 28×28 thuộc 10 lớp: T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag và Ankle boot. Dữ liệu gồm 60.000 ảnh train gốc và 10.000 ảnh test. Tập train gốc được chia thành 50.000 ảnh train và 10.000 ảnh validation với seed 42. Tập test được giữ riêng để đánh giá cuối cùng.
+## Dữ liệu
+FashionMNIST gồm 70.000 ảnh grayscale 28×28 thuộc 10 lớp: T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot.
 
-Input tensor có shape (B, 1, 28, 28), được chuẩn hóa bằng mean/std tính trên tập train. Output của mỗi mô hình là 10 logits.
+| Split | Samples | Purpose |
+|---|---:|---|
+| Train | 50,000 | Cập nhật trọng số |
+| Validation | 10,000 | Theo dõi và chọn checkpoint |
+| Test | 10,000 | Đánh giá cuối cùng |
 
-## 3. Mô hình
+60.000 ảnh train gốc được chia train/validation theo seed 42. Test set được giữ riêng. Ảnh được chuyển thành tensor và chuẩn hóa bằng mean/std tính từ train split. CNN nhận tensor (B,1,28,28); MLP Flatten ảnh thành vector 784 chiều.
 
-### MLP
-Ảnh 28×28 được Flatten thành vector 784 chiều. Kiến trúc mặc định: Linear(784,256) → ReLU → Dropout → Linear(256,128) → ReLU → Dropout → Linear(128,10). MLP đơn giản, dễ huấn luyện nhưng không giữ cấu trúc không gian sau khi Flatten.
+## Hai mô hình
+**MLP:** Flatten → Linear(784,256) → ReLU → Dropout → Linear(256,128) → ReLU → Dropout → Linear(128,10). MLP đơn giản, phù hợp làm baseline; Flatten làm mất cấu trúc không gian 2D.
 
-### CNN
-CNN giữ ảnh ở dạng 2D và học đặc trưng không gian bằng convolution. Kiến trúc gồm ba tầng convolution với 32, 64 và 128 kênh; Batch Normalization, ReLU và Max Pooling; Adaptive Average Pooling; cuối cùng là Fully Connected classifier 10 lớp.
+**CNN:** ba tầng convolution với 32, 64, 128 kênh; Batch Normalization, ReLU, Max Pooling; Adaptive Average Pooling và classifier 1152 → 128 → 10. CNN khai thác đặc trưng cục bộ và quan hệ không gian pixel.
 
-## 4. Quy trình huấn luyện
-1. Tải FashionMNIST bằng torchvision.
-2. Chia train/validation, chuẩn hóa ảnh và tạo DataLoader.
-3. Forward pass để tính logits.
-4. Tính CrossEntropyLoss.
-5. Gọi backward để tính gradient.
-6. Adam cập nhật trọng số.
-7. Đánh giá validation mỗi epoch và lưu checkpoint có validation accuracy tốt nhất.
-8. Đánh giá test và sinh biểu đồ, confusion matrix, ảnh dự đoán.
+## Cấu trúc thư mục
+```text
+fashionmnist_lab/
+├── configs/              # Cấu hình CNN và MLP
+├── data/                 # FashionMNIST
+├── docs/                 # Tài liệu dữ liệu, mô hình, train, evaluate
+├── notebooks/            # Notebook thử nghiệm
+├── reports/
+│   ├── cnn/              # Checkpoint, metrics, plots CNN
+│   ├── mlp/              # Checkpoint, metrics, plots MLP
+│   └── final_report/     # report.md và report.docx
+├── src/                  # dataset, model, train, evaluate, predict, utils
+├── tests/
+├── requirements.txt
+└── README.md
+```
 
-Cấu hình mặc định: seed 42, batch size 128, tối đa 15 epochs, Adam, learning rate 0.001 và Early Stopping patience 4. Cấu hình nằm trong configs/default.yaml (CNN) và configs/mlp.yaml (MLP).
+## Cài đặt
+Khuyến nghị Python 3.10 hoặc 3.11. Mở PowerShell tại thư mục fashionmnist_lab:
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+Cài PyTorch CPU/CUDA phù hợp theo https://pytorch.org/get-started/locally/
 
-## 5. Cấu trúc thư mục
-- configs/: cấu hình CNN và MLP.
-- src/dataset.py: tải dữ liệu, chia tập, chuẩn hóa và DataLoader.
-- src/model.py: định nghĩa MLPClassifier, CNNClassifier và build_model.
-- src/train.py: training loop, validation, early stopping và checkpoint.
-- src/evaluate.py: test metrics và trực quan hóa.
-- src/predict.py: dự đoán ảnh đơn.
-- src/utils.py: seed, đếm tham số, đo latency, lưu JSON và vẽ biểu đồ.
-- tests/: kiểm thử model, dataset và training smoke.
-- reports/cnn/: checkpoint và kết quả CNN.
-- reports/mlp/: checkpoint và kết quả MLP.
-- reports/final_report/: báo cáo Markdown và DOCX.
+## Chạy chương trình
+```powershell
+python -m src.model
+python -m src.dataset
+python -m src.train --dry-run
+python -m src.train
+python -m src.train --config configs/mlp.yaml
+python -m src.evaluate
+python -m src.evaluate --config configs/mlp.yaml
+pytest -q
+```
+Dry run chạy một epoch trên tập mẫu nhỏ và không ghi đè kết quả chính.
 
-## 6. Cài đặt
-Dùng Python 3.10 hoặc 3.11. Mở terminal ở thư mục fashionmnist_lab và chạy:
+## Cấu hình thực nghiệm
+| Parameter | Value |
+|---|---:|
+| Seed | 42 |
+| Batch size | 128 |
+| Maximum epochs | 15 |
+| Optimizer | Adam |
+| Learning rate | 0.001 |
+| Loss | CrossEntropyLoss |
+| Weight decay | 0.0001 |
+| Early stopping patience | 4 |
+| MLP hidden sizes | 256, 128 |
+| CNN channels | 32, 64, 128 |
 
-Windows PowerShell:
-1. python -m venv .venv
-2. .venv\Scripts\Activate.ps1
-3. python -m pip install --upgrade pip
-4. pip install -r requirements.txt
-
-Cài phiên bản PyTorch CPU/CUDA phù hợp theo https://pytorch.org/get-started/locally/
-
-## 7. Chạy chương trình
-
-Kiểm tra nhanh:
-- python -m src.model
-- python -m src.dataset
-
-Dry run (một epoch trên dữ liệu nhỏ, không ghi đè kết quả thật):
-- python -m src.train --dry-run
-
-Huấn luyện CNN:
-- python -m src.train
-
-Huấn luyện MLP:
-- python -m src.train --config configs/mlp.yaml
-
-Đánh giá CNN và MLP:
-- python -m src.evaluate
-- python -m src.evaluate --config configs/mlp.yaml
-
-Kiểm thử:
-- pytest -q
-
-## 8. Kết quả được tạo
-Mỗi thư mục reports/cnn hoặc reports/mlp có thể chứa:
-- training_curves.png: train/validation loss và accuracy theo epoch.
-- history.json: lịch sử từng epoch.
-- train_summary.json: thời gian train, epoch tốt nhất và peak VRAM khi train.
-- test_metrics.json: test accuracy, macro-F1, test loss, latency và số tham số.
-- classification_report.txt: precision, recall, F1-score theo từng lớp.
-- confusion_matrix.png: ma trận nhầm lẫn.
-- predictions_random.png: ảnh test và nhãn dự đoán.
-- predictions_wrong.png: các ảnh dự đoán sai.
-- checkpoint .pth: trọng số mô hình cùng cấu hình và thống kê chuẩn hóa.
-
-## 9. Bảng so sánh thực nghiệm
-Chạy đầy đủ hai mô hình trước khi điền số liệu. Không sử dụng số liệu giả định.
-
-| Chỉ số | MLP | CNN |
+## Kết quả thực nghiệm hiện có
+| Metric | MLP | CNN |
 |---|---:|---:|
-| Validation Accuracy | Chưa chạy | Chưa chạy |
-| Test Accuracy | Chưa chạy | Chưa chạy |
-| Macro-F1 | Chưa chạy | Chưa chạy |
-| Test Loss | Chưa chạy | Chưa chạy |
-| Training time (s) | Chưa chạy | Chưa chạy |
-| Inference latency (ms/ảnh) | Chưa chạy | Chưa chạy |
-| Số tham số | Chạy script | Chạy script |
+| Best validation accuracy | 89.48% | 92.05% |
+| Test accuracy | 88.65% | 91.30% |
+| Test macro-F1 | 88.62% | 91.32% |
+| Test loss | 0.3227 | 0.2473 |
+| Training time | 21.88 s | 201.26 s |
+| Inference latency | 0.0673 ms/image | 0.2684 ms/image |
+| Parameters | 235,146 | 241,994 |
+| Epochs run | 15 | 12 |
 
-Nhận xét cần dựa trên kết quả thực nghiệm: mô hình nào có accuracy và macro-F1 cao hơn; mô hình nào nhanh hơn; train/validation curves có dấu hiệu overfitting hay không; lớp nào dễ bị nhầm qua confusion matrix.
+**Nhận xét:** CNN cao hơn MLP 2.65 điểm phần trăm về test accuracy và có macro-F1 cao hơn; test loss thấp hơn. MLP huấn luyện nhanh hơn và có latency thấp hơn trong lần đo hiện tại. Hai mô hình có số tham số gần nhau. Thời gian phụ thuộc phần cứng và điều kiện đo.
 
-## 10. Tài liệu tham khảo
-1. Fashion-MNIST: https://github.com/zalandoresearch/fashion-mnist
-2. PyTorch Tutorials: https://pytorch.org/tutorials/
-3. torch.nn: https://pytorch.org/docs/stable/nn.html
-4. Data Loading: https://pytorch.org/docs/stable/data.html
+Shirt là lớp khó nhất (F1 MLP 0.6991; CNN 0.7506). CNN tốt hơn trên phần lớn lớp; riêng Bag, MLP đạt F1 0.9758, nhỉnh hơn CNN 0.9711.
+
+## File đầu ra
+Mỗi thư mục reports/mlp/ và reports/cnn/ có history.json, train_summary.json, test_metrics.json, classification_report.txt, training_curves.png, confusion_matrix.png, predictions_random.png, predictions_wrong.png và checkpoint .pth. Báo cáo tổng hợp nằm trong reports/final_report/.
+
+## Ý nghĩa chỉ số
+- Accuracy: tỷ lệ dự đoán đúng trên toàn bộ mẫu.
+- Precision: tỷ lệ dự đoán đúng trong các mẫu được dự đoán thuộc lớp.
+- Recall: tỷ lệ mẫu thuộc lớp được nhận diện đúng.
+- F1-score: trung bình điều hòa precision và recall; Macro-F1 lấy trung bình đều trên các lớp.
+- Confusion Matrix: số lượng dự đoán theo lớp thật và lớp dự đoán.
+- Loss: CrossEntropyLoss đo sai khác giữa logits và nhãn.
+
+## Tài liệu tham khảo
+1. https://github.com/zalandoresearch/fashion-mnist
+2. https://pytorch.org/tutorials/
+3. https://pytorch.org/docs/stable/nn.html
+4. https://pytorch.org/docs/stable/data.html
