@@ -1,0 +1,22 @@
+# Baseline: MLP thuần trên ảnh phẳng 784 chiều (dùng để so sánh)
+seed: 42
+data:
+  root: ./data
+  val_size: 10000
+  batch_size: 128
+  num_workers: 0
+model:
+  name: mlp
+  hidden_sizes: [256, 128]
+  dropout: 0.2
+  num_classes: 10
+train:
+  epochs: 15
+  lr: 0.001
+  optimizer: adam
+  weight_decay: 0.0
+  patience: 4
+  amp: false
+output:
+  model_path: reports/mlp/fashion_mnist_mlp.pth
+  reports_dir: reports/mlp
