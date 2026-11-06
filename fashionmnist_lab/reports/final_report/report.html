@@ -7,15 +7,15 @@
 <title>FashionMNIST – Chapter 2 Practice 1</title>
 <style>
 :root{--ink:#172033;--muted:#64748b;--line:#e2e8f0;--paper:#fff;--bg:#f3f6fb;--blue:#2457a6;--teal:#0f766e;--soft:#edf4ff;--shadow:0 12px 36px rgba(15,23,42,.07)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.72 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
-a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:1120px;margin:auto;padding:32px 22px 70px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.78 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:1600px;margin:auto;padding:28px 30px 80px}
 .hero{background:linear-gradient(130deg,#102344,#1e4f86 58%,#167c80);color:#fff;border-radius:24px;padding:46px clamp(24px,5vw,60px);box-shadow:var(--shadow)}
 .eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.76rem;font-weight:700;color:#b9d9ff}.hero h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;margin:16px 0}.hero p{max-width:780px;color:#e2edfb;font-size:1.05rem}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.meta span{border:1px solid #ffffff45;border-radius:999px;padding:5px 12px;font-size:.83rem}
-.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:26px;margin-top:26px}.toc{position:sticky;top:18px;align-self:start;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;padding:5px 0;color:#475569;font-size:.9rem}.content{min-width:0}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,34px);margin-bottom:20px;box-shadow:var(--shadow)}h2{font-size:1.55rem;margin:0 0 16px;line-height:1.3}h3{font-size:1.1rem;margin:24px 0 8px}p{margin:10px 0}ul,ol{padding-left:22px}li{margin:5px 0}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:30px;margin-top:28px}.toc{position:sticky;top:18px;align-self:start;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;padding:5px 0;color:#475569;font-size:.9rem}.content{min-width:0}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,34px);margin-bottom:20px;box-shadow:var(--shadow)}h2{font-size:2rem;margin:0 0 20px;line-height:1.3}h3{font-size:1.35rem;margin:24px 0 8px}p{margin:10px 0}ul,ol{padding-left:22px}li{margin:5px 0}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.kpi{background:#f7f9fc;border:1px solid var(--line);border-radius:14px;padding:16px}.kpi small{display:block;color:var(--muted);font-size:.78rem}.kpi b{font-size:1.35rem;letter-spacing:-.03em}.kpi em{display:block;font-style:normal;color:var(--muted);font-size:.8rem}
 table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}th{background:#f5f8fc;font-weight:700}tr:last-child td{border-bottom:0}
-.callout{border-left:4px solid var(--blue);background:var(--soft);padding:14px 18px;border-radius:8px;margin:16px 0}.good{border-left-color:var(--teal)}.figure{margin:18px 0 26px}.figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff}.figure figcaption{font-size:.88rem;color:var(--muted);margin-top:8px}.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.small{color:var(--muted);font-size:.88rem}.footer{color:var(--muted);text-align:center;padding:24px;font-size:.85rem}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.toc{position:static;display:grid;grid-template-columns:repeat(2,1fr);gap:0 14px}.toc strong{grid-column:1/-1}.kpis{grid-template-columns:1fr}}@media(max-width:560px){.wrap{padding:14px 12px 40px}.hero{padding:30px 22px;border-radius:18px}.two{grid-template-columns:1fr}table{font-size:.82rem}th,td{padding:8px 7px}}
+.callout{border-left:4px solid var(--blue);background:var(--soft);padding:14px 18px;border-radius:8px;margin:16px 0}.good{border-left-color:var(--teal)}.figure{margin:18px 0 26px}.figure img{display:block;width:100%;max-width:100%;height:auto;border:1px solid var(--line);border-radius:14px;background:#fff}.figure{margin:24px 0 34px}.figure figcaption{font-size:1rem}.two{grid-template-columns:1fr}.pipeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0}.pipeline div{background:#eef5ff;border:1px solid #cbdcf5;border-radius:12px;padding:16px;font-weight:650}.pipeline span{display:block;font-weight:400;font-size:.9rem;color:#475569;margin-top:6px}.section-note{background:#f8fafc;border-left:5px solid var(--blue);padding:16px 20px;border-radius:10px;margin:20px 0}.figure-grid{display:grid;grid-template-columns:1fr;gap:10px}.figure figcaption{font-size:.88rem;color:var(--muted);margin-top:8px}.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.small{color:var(--muted);font-size:.88rem}.footer{color:var(--muted);text-align:center;padding:24px;font-size:.85rem}
+@media(max-width:1050px){.pipeline{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:850px){.layout{grid-template-columns:1fr}.toc{position:static;display:grid;grid-template-columns:repeat(2,1fr);gap:0 14px}.toc strong{grid-column:1/-1}.kpis{grid-template-columns:1fr}}@media(max-width:560px){.wrap{padding:14px 12px 40px}.hero{padding:30px 22px;border-radius:18px}.two{grid-template-columns:1fr}table{font-size:.82rem}th,td{padding:8px 7px}}
 @media print{body{background:#fff}.wrap{max-width:none;padding:0}.hero,.card,.toc{box-shadow:none}.layout{display:block}.toc{display:none}.card{break-inside:avoid}.hero{border-radius:0}}
 </style>
 </head>
@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{p
 </header>
 <div class="layout">
 <nav class="toc"><strong>Nội dung</strong>
-<a href="#tasks">Ba nhiệm vụ</a><a href="#data">Dữ liệu</a><a href="#experiment">Task 1 – Experiment</a><a href="#loss">Task 2 – Loss</a><a href="#prediction">Task 3 – Predictions</a><a href="#pipeline">PyTorch pipeline</a><a href="#evaluation">Đánh giá bổ sung</a><a href="#conclusion">Kết luận</a>
+<a href="#tasks">Ba nhiệm vụ</a><a href="#data">Dữ liệu</a><a href="#eda">EDA & PCA variance</a><a href="#pipeline">Data Pipeline</a><a href="#experiment">Task 1 – Experiment</a><a href="#loss">Task 2 – Loss</a><a href="#prediction">Task 3 – Predictions</a><a href="#pipeline">PyTorch pipeline</a><a href="#evaluation">Đánh giá bổ sung</a><a href="#conclusion">Kết luận</a>
 </nav>
 <main class="content">
 <section class="card" id="tasks"><h2>Mục tiêu và checklist bài lab</h2>
@@ -50,7 +50,25 @@ table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{p
 <table><thead><tr><th>Split</th><th>Số ảnh</th><th>Mục đích</th></tr></thead><tbody><tr><td>Train</td><td>50.000</td><td>Cập nhật trọng số</td></tr><tr><td>Validation</td><td>10.000</td><td>Theo dõi, chọn checkpoint</td></tr><tr><td>Test</td><td>10.000</td><td>Đánh giá cuối cùng</td></tr></tbody></table>
 <p>Ảnh được chuyển về [0,1] và chuẩn hóa bằng mean 0,2858626, std 0,3529320 tính từ training split. Notebook thực hiện EDA, kiểm tra nhãn, ảnh trống, trùng lặp, phân phối lớp, thống kê pixel và PCA.</p>
 </section>
-<section class="card" id="experiment"><h2>2. Task 1 – Thử nghiệm cấu trúc mạng</h2>
+<section class="card" id="eda"><h2>2. EDA — Khám phá dữ liệu và phương sai</h2>
+<p>EDA giúp kiểm tra chất lượng, phân bố và cấu trúc ảnh trước khi huấn luyện. Đây là phần cần nắm khi vấn đáp, không chỉ là hình trang trí.</p>
+<h3>2.1. Cleaning và phân bố lớp</h3>
+<ul><li>60.000 ảnh train gốc và 10.000 ảnh test; ảnh grayscale 28×28, uint8, pixel [0,255], nhãn [0,9].</li><li>Notebook ghi nhận 0 ảnh trống, 0 ảnh trùng chính xác trong train và 0 ảnh train trùng chính xác với test.</li><li>Dữ liệu gốc cân bằng: 6.000 ảnh train và 1.000 ảnh test cho mỗi lớp. Sau split, train có 50.000 ảnh và validation 10.000 ảnh, tất cả 10 lớp đều hiện diện.</li><li>Data audit độc lập: 12/12 checks PASS. Accuracy có ý nghĩa tổng quan trên dữ liệu cân bằng, nhưng vẫn cần precision/recall/F1 theo lớp.</li></ul>
+<figure class="figure"><img src="figures/class_distribution.png" alt="Phân bố lớp train và test"><figcaption>Phân bố lớp FashionMNIST: các lớp cân bằng trong dữ liệu gốc.</figcaption></figure>
+<h3>2.2. Ảnh mẫu và ảnh trung bình</h3>
+<p>Ảnh trung bình làm rõ đặc trưng hình dáng chung. Nhóm Pullover, Coat, Shirt có vùng thân/tay áo tương tự nên có thể khó phân biệt hơn; Trouser, Bag, Sandal và Ankle boot thường có hình dáng đặc trưng hơn.</p>
+<figure class="figure"><img src="figures/sample_images_by_class.png" alt="Ảnh mẫu theo lớp"><figcaption>Các ảnh mẫu của 10 lớp, giúp kiểm tra trực quan nhãn và hình thái dữ liệu.</figcaption></figure>
+<figure class="figure"><img src="figures/class_mean_images.png" alt="Ảnh trung bình theo lớp"><figcaption>Ảnh trung bình của từng lớp sau khi chuẩn hóa pixel về [0,1].</figcaption></figure>
+<h3>2.3. Pixel statistics, variance và độ sáng</h3>
+<ul><li>Mean pixel toàn bộ train ≈ 0,2860; standard deviation ≈ 0,3530.</li><li>50,21% pixel có giá trị 0, cho thấy nền đen chiếm diện tích đáng kể.</li><li>Histogram cho thấy phân bố cường độ pixel; boxplot so sánh độ sáng trung bình ảnh giữa 10 lớp.</li><li>Variance đo độ phân tán quanh mean; standard deviation là căn bậc hai của variance. Đây là thống kê dữ liệu, không phải accuracy.</li></ul>
+<figure class="figure"><img src="figures/pixel_statistics.png" alt="Histogram pixel và boxplot độ sáng"><figcaption>Thống kê cường độ pixel và độ sáng trung bình theo lớp.</figcaption></figure>
+<h3>2.4. Độ tương tự giữa các lớp</h3>
+<p>Khoảng cách Euclid giữa ảnh trung bình: Pullover–Coat 2,48; Pullover–Shirt 2,68; Coat–Shirt 3,02. Các cặp này khá gần nhau ở mức ảnh trung bình; đây là gợi ý khám phá, cần kiểm chứng bằng confusion matrix chứ không phải kết luận mô hình chắc chắn nhầm.</p>
+<figure class="figure"><img src="figures/class_similarity_distance.png" alt="Khoảng cách Euclid giữa ảnh trung bình các lớp"><figcaption>Ma trận khoảng cách Euclid giữa ảnh trung bình của 10 lớp.</figcaption></figure>
+<h3>2.5. PCA — Explained Variance</h3>
+<p>Mỗi ảnh có 784 pixel, tức 784 chiều. PCA sắp xếp các thành phần chính theo lượng phương sai giữ lại. Trên mẫu 6.000 ảnh, 50 thành phần giữ khoảng <b>86,3% phương sai</b>; 50 thành phần chưa đạt 90%. PCA chỉ dùng cho EDA, không thay thế ảnh 784 chiều đưa vào mô hình.</p>
+<figure class="figure"><img src="figures/pca_variance_and_projection.png" alt="PCA explained variance và phép chiếu 2D"><figcaption>Đường phương sai tích lũy theo số thành phần và phép chiếu PCA 2D.</figcaption></figure>
+</section>\n<section class="card" id="experiment"><h2>3. Task 1 – Thử nghiệm cấu trúc mạng và hyperparameters</h2>
 <p>Đề bài cho phép thử nghiệm cấu trúc mạng <b>hoặc</b> hyperparameters. Project chọn khảo sát hai cấu trúc MLP và CNN. Cùng dataset, seed, split, batch size, optimizer, learning rate và weight decay được sử dụng để việc quan sát tập trung vào khác biệt kiến trúc.</p>
 <table><thead><tr><th>Thiết lập</th><th>MLP</th><th>CNN</th></tr></thead><tbody>
 <tr><td>Input</td><td>Flatten 784</td><td>1×28×28</td></tr><tr><td>Kiến trúc</td><td>784→256→128→10</td><td>Conv 1→32→64→128; pooling; 1152→128→10</td></tr>
@@ -58,14 +76,24 @@ table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{p
 <tr><td>Optimizer</td><td>Adam</td><td>Adam</td></tr><tr><td>Learning rate</td><td>0,001</td><td>0,001</td></tr><tr><td>Batch size</td><td>128</td><td>128</td></tr><tr><td>Epoch tối đa</td><td>15</td><td>15</td></tr>
 </tbody></table>
 <p>MLP dùng các lớp fully connected trên vector ảnh đã Flatten. CNN dùng convolution để học đặc trưng cục bộ và bảo toàn cấu trúc không gian. Cấu hình nằm trong <code>configs/mlp.yaml</code> và <code>configs/cnn.yaml</code>.</p>
-<h3>Kết quả lần chạy local mới nhất được cung cấp</h3>
+<h3>Thí nghiệm hyperparameter trong notebook (MLP)</h3>
+<p>Notebook thực hiện 12 cấu hình MLP, mỗi lần thay đổi một nhóm tham số so với baseline; tất cả chạy 10 epoch và chọn theo validation accuracy. Không dùng test set để chọn cấu hình.</p>
+<table><thead><tr><th>Thí nghiệm</th><th>Thay đổi</th><th>Best val accuracy</th></tr></thead><tbody>
+<tr><td>Baseline</td><td>hidden=(256,128), dropout=0,2, lr=0,001, Adam, batch=128</td><td><b>89,24%</b></td></tr>
+<tr><td>lr=0,01</td><td>Learning rate tăng</td><td>86,00%</td></tr><tr><td>lr=0,0001</td><td>Learning rate giảm</td><td>87,49%</td></tr>
+<tr><td>batch=64</td><td>Batch size nhỏ</td><td>88,86%</td></tr><tr><td>batch=256</td><td>Batch size lớn</td><td><b>89,24%</b></td></tr>
+<tr><td>hidden=(64,)</td><td>Mạng nhỏ hơn</td><td>88,12%</td></tr><tr><td>hidden=(512,256,128)</td><td>Mạng sâu/rộng hơn</td><td>88,96%</td></tr>
+<tr><td>SGD</td><td>SGD, momentum 0,9, lr=0,01</td><td>88,65%</td></tr><tr><td>RMSprop</td><td>Đổi optimizer</td><td>88,94%</td></tr>
+<tr><td>dropout=0</td><td>Bỏ dropout</td><td>89,23%</td></tr><tr><td>dropout=0,5</td><td>Tăng dropout</td><td>88,00%</td></tr><tr><td>weight decay=1e-4</td><td>L2 regularization</td><td>88,98%</td></tr>
+</tbody></table>
+<div class="section-note"><b>Nhận xét:</b> Baseline và batch=256 đạt 89,24%, cao nhất trong các cấu hình đã thử. Learning rate 0,01 chỉ đạt 86,00%, cho thấy learning rate quá lớn có thể làm tối ưu kém ổn định trong thiết lập này. Đây là thí nghiệm notebook 10 epoch, không trộn số liệu với pipeline CLI 15 epoch bên dưới.</div><h3>Thí nghiệm kiến trúc bằng pipeline CLI (15 epoch)</h3>
 <table><thead><tr><th>Chỉ số</th><th>MLP</th><th>CNN</th></tr></thead><tbody>
 <tr><td>Best validation accuracy</td><td>89,15%</td><td>92,25%</td></tr><tr><td>Test accuracy</td><td>88,34%</td><td>92,20%</td></tr><tr><td>Macro-F1</td><td>88,35%</td><td>92,15%</td></tr><tr><td>Test loss</td><td>0,3276</td><td>0,2331</td></tr><tr><td>Epoch thực chạy</td><td>15</td><td>15</td></tr>
 </tbody></table>
 <div class="callout">CNN cao hơn 3,86 điểm phần trăm về test accuracy trong lần chạy này. Đây là quan sát trên hai cấu hình cụ thể, không phải kết luận CNN luôn tốt hơn mọi MLP.</div>
 <p class="small"><b>Đồng bộ kết quả:</b> JSON đang lưu trên GitHub cần được cập nhật từ lần chạy local mới nhất trước khi nộp. Hãy chạy train/evaluate và đồng bộ thư mục reports để các bảng, loss curves và ảnh dự đoán cùng một lần chạy.</p>
 </section>
-<section class="card" id="loss"><h2>3. Task 2 – Trực quan hóa độ mất mát (Loss)</h2>
+<section class="card" id="loss"><h2>4. Task 2 – Trực quan hóa độ mất mát (Loss)</h2>
 <p>Trong mỗi epoch, chương trình ghi lại train loss và validation loss vào <code>history.json</code>. Hàm <code>plot_history()</code> tạo biểu đồ <code>training_curves.png</code>. Quan sát hai đường loss giúp nhận biết mô hình có đang học và có dấu hiệu overfitting hay không.</p>
 <div class="two">
 <div><h3>MLP – Training curves</h3><figure class="figure"><img src="../mlp/training_curves.png" alt="MLP training loss and accuracy curves"><figcaption>Đường loss train/validation của MLP (kèm accuracy).</figcaption></figure></div>
@@ -73,22 +101,25 @@ table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{p
 </div>
 <ul><li>Train loss giảm: mô hình đang khớp dần với dữ liệu train.</li><li>Validation loss tăng trong khi train loss giảm kéo dài: có thể xuất hiện overfitting.</li><li>Đọc xu hướng qua nhiều epoch, không kết luận chỉ từ một điểm.</li></ul>
 </section>
-<section class="card" id="prediction"><h2>4. Task 3 – Predicted vs Actual Images</h2>
+<section class="card" id="prediction"><h2>5. Task 3 – Predicted vs Actual Images</h2>
 <p>Chương trình hiển thị ảnh test cùng hai thông tin: nhãn mô hình dự đoán và nhãn thực tế. Tiêu đề mỗi ảnh có dạng <b>Predicted (Actual)</b>. Màu xanh là dự đoán đúng, màu đỏ là dự đoán sai.</p>
 <h3>Ảnh test ngẫu nhiên</h3><figure class="figure"><img src="../cnn/predictions_random.png" alt="Random FashionMNIST predictions with predicted and actual labels"><figcaption>Mỗi ảnh thể hiện nhãn dự đoán ở dòng đầu và nhãn thực tế trong ngoặc.</figcaption></figure>
 <h3>Các ảnh dự đoán sai</h3><figure class="figure"><img src="../cnn/predictions_wrong.png" alt="Misclassified FashionMNIST test images"><figcaption>Các trường hợp mô hình dự đoán khác nhãn thực tế, giúp phân tích lỗi.</figcaption></figure>
 <p>Các hình được sinh bởi <code>show_predictions()</code> trong <code>src/utils.py</code> và lưu bởi <code>src/evaluate.py</code>. Ảnh tương ứng của MLP nằm trong <code>reports/mlp/</code>.</p>
 </section>
-<section class="card" id="pipeline"><h2>5. Quy trình PyTorch được triển khai</h2>
+<section class="card" id="pipeline"><h2>6. Data Pipeline và quy trình PyTorch</h2>
+<div class="pipeline"><div>1. Collection<span>torchvision tải FashionMNIST</span></div><div>2. Cleaning & EDA<span>kiểm tra nhãn, ảnh, phân bố</span></div><div>3. Split<span>50k train · 10k val · 10k test</span></div><div>4. Normalize<span>mean/std chỉ tính từ train</span></div><div>5. Dataset<span>ảnh và nhãn thành mẫu</span></div><div>6. DataLoader<span>mini-batch 128; shuffle train</span></div><div>7. Model<span>MLP hoặc CNN nhận tensor</span></div><div>8. Train & Evaluate<span>forward, loss, backward, update</span></div></div>
+<figure class="figure"><img src="figures/normalization_histograms.png" alt="Histogram trước và sau chuẩn hóa"><figcaption>So sánh phân bố pixel trước và sau Normalize.</figcaption></figure>
+<figure class="figure"><img src="figures/normalized_batch_samples.png" alt="Mini batch sau chuẩn hóa"><figcaption>Ví dụ mini-batch sau chuẩn hóa: tensor ảnh có shape 128×1×28×28.</figcaption></figure>
 <ol><li><b>Tensor, Dataset, DataLoader:</b> biểu diễn ảnh/nhãn và nạp theo mini-batch.</li><li><b>Transforms:</b> chuyển ảnh thành tensor và chuẩn hóa.</li><li><b>Model building:</b> xây dựng mạng bằng <code>torch.nn.Module</code>.</li><li><b>Autograd:</b> <code>loss.backward()</code> tính gradient tự động.</li><li><b>Optimization:</b> Adam cập nhật trọng số qua <code>optimizer.step()</code>.</li><li><b>Save/load:</b> lưu checkpoint tốt nhất theo validation và nạp lại khi đánh giá.</li></ol>
 <p>Training loop: <code>zero_grad → forward → loss → backward → optimizer.step</code>. Test set chỉ được dùng cho đánh giá cuối cùng.</p>
 </section>
-<section class="card" id="evaluation"><h2>6. Đánh giá bổ sung</h2>
+<section class="card" id="evaluation"><h2>7. Đánh giá bổ sung</h2>
 <p>Accuracy, Precision, Recall, Macro-F1 và Confusion Matrix được dùng để đánh giá thêm chất lượng phân loại trên 10 lớp. Đây là nội dung hỗ trợ, không thay thế ba nhiệm vụ chính.</p>
 <table><thead><tr><th>Chỉ số</th><th>MLP</th><th>CNN</th></tr></thead><tbody><tr><td>Test accuracy</td><td>88,34%</td><td>92,20%</td></tr><tr><td>Macro-F1</td><td>88,35%</td><td>92,15%</td></tr></tbody></table>
 <figure class="figure"><img src="../cnn/confusion_matrix.png" alt="CNN confusion matrix"><figcaption>Confusion Matrix của CNN trên test set.</figcaption></figure>
 </section>
-<section class="card" id="conclusion"><h2>7. Kết luận theo đúng ba Task</h2>
+<section class="card" id="conclusion"><h2>8. Kết luận theo đúng ba Task</h2>
 <ul><li><b>Task 1 – Thử nghiệm:</b> đã triển khai hai cấu trúc MLP/CNN với cấu hình riêng và điều kiện dữ liệu/huấn luyện cơ bản được giữ thống nhất.</li><li><b>Task 2 – Visualize Loss:</b> lưu loss theo epoch và trực quan hóa train loss cùng validation loss.</li><li><b>Task 3 – Predicted vs Actual:</b> tạo ảnh dự đoán ngẫu nhiên và ảnh dự đoán sai, thể hiện rõ nhãn dự đoán và nhãn thực tế.</li></ul>
 <p>Vì vậy, trọng tâm bài lab là thực hành xây dựng, huấn luyện, theo dõi loss và kiểm tra dự đoán bằng PyTorch. So sánh MLP/CNN chỉ là một phần của thí nghiệm cấu trúc mạng.</p>
 <h3>Tài liệu tham khảo</h3><ol><li><a href="https://github.com/zalandoresearch/fashion-mnist">Fashion-MNIST – Zalando Research</a></li><li><a href="https://pytorch.org/tutorials/">PyTorch Tutorials</a></li><li><a href="https://pytorch.org/docs/stable/nn.html">PyTorch torch.nn</a></li><li><a href="https://pytorch.org/docs/stable/data.html">PyTorch Data Loading</a></li></ol>
