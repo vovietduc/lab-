@@ -1,7 +1,7 @@
 # Project Description – FashionMNIST Classification
 
 ## 1. Mục tiêu
-Bài thực hành thuộc Chapter 2 – Artificial Neural Networks. Xây dựng pipeline phân loại ảnh thời trang bằng PyTorch và so sánh hai mô hình huấn luyện từ đầu: MLP (Multi-Layer Perceptron) và CNN (Convolutional Neural Network). Không sử dụng ResNet hoặc trọng số pretrained.
+Bài thực hành thuộc Chapter 2 – Artificial Neural Networks. Thực hành quy trình phân loại ảnh thời trang bằng PyTorch theo ba nhiệm vụ của đề bài: (1) thử nghiệm cấu trúc mạng hoặc hyperparameters, (2) trực quan hóa loss, (3) hiển thị ảnh dự đoán so với nhãn thực tế. MLP và CNN là hai cấu trúc dùng để minh họa Task 1; so sánh giữa chúng chỉ là phân tích hỗ trợ, không phải mục tiêu bao trùm. Không sử dụng ResNet hoặc trọng số pretrained.
 
 ## 2. Bài toán và dữ liệu
 Đầu vào là ảnh grayscale 28×28 thuộc FashionMNIST. Đầu ra là một trong 10 lớp: T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot. Dataset có 60.000 ảnh train gốc và 10.000 ảnh test. Chia train gốc thành 50.000 train và 10.000 validation với seed 42. Test chỉ dùng đánh giá cuối cùng.
@@ -33,5 +33,9 @@ Ba tầng convolution với số kênh 32, 64, 128; Batch Normalization, ReLU v�
 - Chạy CPU; hỗ trợ CUDA nếu cài PyTorch tương ứng.
 - Không ghi số liệu trước khi thực sự chạy thí nghiệm.
 
-## 6. Tiêu chí so sánh
-Accuracy, Macro-F1, Test Loss, thời gian huấn luyện, latency suy luận, số lượng tham số và khả năng nhận diện từng lớp qua confusion matrix.
+## 6. Đối chiếu trực tiếp ba Tasks
+1. **Thử nghiệm kiến trúc/hyperparameters:** lưu cấu hình, mô tả khác biệt có chủ đích và trình bày kết quả validation/test.
+2. **Visualize loss:** lưu lịch sử train loss/validation loss theo epoch và biểu đồ tương ứng.
+3. **Predicted vs actual images:** hiển thị ảnh test, nhãn dự đoán và nhãn thực tế; có ví dụ đúng và sai.
+
+Accuracy, Macro-F1, Test Loss, confusion matrix và thời gian chạy là chỉ số đánh giá bổ trợ.
