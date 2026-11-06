@@ -35,32 +35,65 @@ def normalize(x_uint8: torch.Tensor, mean: float, std: float) -> torch.Tensor:
     return ((x_uint8.float() / 255.0 - mean) / std).unsqueeze(1)
 
 
-def get_dataloaders(root="./data", val_size=10000, batch_size=128, num_workers=0,
-                    seed=42, dry_run=False, pin_memory=False):
-    """Trả về (loaders, info). loaders: dict train/val/test."""
+
+def get_dataloaders(root="./data", val_size=10000, batch_size=128,
+                    num_workers=0, seed=42, dry_run=False,
+                    pin_memory=False):
     xtr, ytr, xte, yte = load_raw(root)
+
     tr_idx, va_idx = split_indices(len(xtr), val_size, seed)
     mean, std = compute_stats(xtr, tr_idx)
 
-    x_train, y_train = normalize(xtr[tr_idx], mean, std), ytr[tr_idx]
-    x_val, y_val = normalize(xtr[va_idx], mean, std), ytr[va_idx]
-    x_test, y_test = normalize(xte, mean, std), yte
+    x_train = normalize(xtr[tr_idx], mean, std)
+    y_train = ytr[tr_idx]
 
-    if dry_run:  # Dry Run: tập mẫu rất nhỏ để kiểm tra pipeline
+    x_val = normalize(xtr[va_idx], mean, std)
+    y_val = ytr[va_idx]
+
+    x_test = normalize(xte, mean, std)
+    y_test = yte
+
+    if dry_run:
         x_train, y_train = x_train[:50], y_train[:50]
         x_val, y_val = x_val[:20], y_val[:20]
         x_test, y_test = x_test[:20], y_test[:20]
-
     kw = dict(num_workers=num_workers, pin_memory=pin_memory)
-    loaders = {
-        "train": DataLoader(TensorDataset(x_train, y_train), batch_size=batch_size, shuffle=True, **kw),
-        "val": DataLoader(TensorDataset(x_val, y_val), batch_size=512, shuffle=False, **kw),
-        "test": DataLoader(TensorDataset(x_test, y_test), batch_size=512, shuffle=False, **kw),
-    }
-    info = {"mean": mean, "std": std, "class_names": CLASS_NAMES,
-            "n_train": len(x_train), "n_val": len(x_val), "n_test": len(x_test)}
-    return loaders, info
 
+    # Generator riêng để cố định thứ tự shuffle của Train
+    train_generator = torch.Generator()
+    train_generator.manual_seed(seed)
+
+    loaders = {
+        "train": DataLoader(
+            TensorDataset(x_train, y_train),
+            batch_size=batch_size,
+            shuffle=True,
+            generator=train_generator,
+            **kw
+        ),
+        "val": DataLoader(
+            TensorDataset(x_val, y_val),
+            batch_size=512,
+            shuffle=False,
+            **kw
+        ),
+        "test": DataLoader(
+            TensorDataset(x_test, y_test),
+            batch_size=512,
+            shuffle=False,
+            **kw
+        ),
+    }
+
+    info = {
+        "mean": mean,
+        "std": std,
+        "class_names": CLASS_NAMES,
+        "n_train": len(x_train),
+        "n_val": len(x_val),
+        "n_test": len(x_test),
+    }
+    return loaders, info
 
 if __name__ == "__main__":  # Smoke Run cho dữ liệu
     loaders, info = get_dataloaders(dry_run=True)

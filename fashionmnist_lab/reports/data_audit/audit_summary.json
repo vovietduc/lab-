@@ -1,0 +1,85 @@
+{
+    "dataset": "FashionMNIST",
+    "seed": 42,
+    "validation_size": 10000,
+    "train_size": 50000,
+    "test_size": 10000,
+    "image_shape": [
+        28,
+        28
+    ],
+    "normalization": {
+        "mean": 0.28586259484291077,
+        "std": 0.35293200612068176,
+        "computed_from": "training split only"
+    },
+    "class_distribution": {
+        "T-shirt/top": {
+            "train": 5020,
+            "validation": 980,
+            "test": 1000
+        },
+        "Trouser": {
+            "train": 5021,
+            "validation": 979,
+            "test": 1000
+        },
+        "Pullover": {
+            "train": 4939,
+            "validation": 1061,
+            "test": 1000
+        },
+        "Dress": {
+            "train": 5026,
+            "validation": 974,
+            "test": 1000
+        },
+        "Coat": {
+            "train": 4954,
+            "validation": 1046,
+            "test": 1000
+        },
+        "Sandal": {
+            "train": 4945,
+            "validation": 1055,
+            "test": 1000
+        },
+        "Shirt": {
+            "train": 5016,
+            "validation": 984,
+            "test": 1000
+        },
+        "Sneaker": {
+            "train": 5007,
+            "validation": 993,
+            "test": 1000
+        },
+        "Bag": {
+            "train": 5043,
+            "validation": 957,
+            "test": 1000
+        },
+        "Ankle boot": {
+            "train": 5029,
+            "validation": 971,
+            "test": 1000
+        }
+    },
+    "checks": {
+        "train_count_60000": true,
+        "test_count_10000": true,
+        "image_shape_28x28": true,
+        "grayscale_uint8": true,
+        "pixel_range_0_255": true,
+        "labels_in_0_9": true,
+        "all_classes_present": true,
+        "train_val_disjoint": true,
+        "split_sizes_correct": true,
+        "split_covers_original_train": true,
+        "all_classes_present_each_split": true,
+        "normalization_stats_finite": true
+    },
+    "passed": 12,
+    "total": 12,
+    "all_passed": true
+}

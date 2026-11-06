@@ -15,7 +15,7 @@ train:
   optimizer: adam
   weight_decay: 0.0001
   patience: 4
-  amp: true
+  amp: false
 output:
   model_path: reports/cnn/fashion_mnist_cnn.pth
   reports_dir: reports/cnn

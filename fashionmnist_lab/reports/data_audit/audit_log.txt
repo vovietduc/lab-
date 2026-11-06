@@ -1,0 +1,18 @@
+FASHIONMNIST DATA AUDIT
+==============================================================
+[PASS] train_count_60000
+[PASS] test_count_10000
+[PASS] image_shape_28x28
+[PASS] grayscale_uint8
+[PASS] pixel_range_0_255
+[PASS] labels_in_0_9
+[PASS] all_classes_present
+[PASS] train_val_disjoint
+[PASS] split_sizes_correct
+[PASS] split_covers_original_train
+[PASS] all_classes_present_each_split
+[PASS] normalization_stats_finite
+
+Mean: 0.285863
+Std: 0.352932
+Summary: 12/12 checks passed
