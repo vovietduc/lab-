@@ -99,7 +99,7 @@ table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{p
 <div><h3>MLP – Training curves</h3><figure class="figure"><img src="../mlp/training_curves.png" alt="MLP training loss and accuracy curves"><figcaption>Đường loss train/validation của MLP (kèm accuracy).</figcaption></figure></div>
 <div><h3>CNN – Training curves</h3><figure class="figure"><img src="../cnn/training_curves.png" alt="CNN training loss and accuracy curves"><figcaption>Đường loss train/validation của CNN (kèm accuracy).</figcaption></figure></div>
 </div>
-<ul><li>Train loss giảm: mô hình đang khớp dần với dữ liệu train.</li><li>Validation loss tăng trong khi train loss giảm kéo dài: có thể xuất hiện overfitting.</li><li>Đọc xu hướng qua nhiều epoch, không kết luận chỉ từ một điểm.</li></ul>
+<div class="section-note"><b>Lưu ý đồng bộ trước khi trình chiếu:</b> nếu biểu đồ đang đánh dấu best epoch 12 hoặc 13, đó là ảnh từ lần chạy cũ. Lần chạy local mới nhất bạn cung cấp có 15 epoch cho cả MLP và CNN. Hãy thay training_curves.png, predictions_random.png, predictions_wrong.png và confusion_matrix.png bằng artifacts vừa sinh từ checkpoint mới nhất trước khi chụp PDF/nộp bài.</div><ul><li>Train loss giảm: mô hình đang khớp dần với dữ liệu train.</li><li>Validation loss tăng trong khi train loss giảm kéo dài: có thể xuất hiện overfitting.</li><li>Đọc xu hướng qua nhiều epoch, không kết luận chỉ từ một điểm.</li></ul>
 </section>
 <section class="card" id="prediction"><h2>5. Task 3 – Predicted vs Actual Images</h2>
 <p>Chương trình hiển thị ảnh test cùng hai thông tin: nhãn mô hình dự đoán và nhãn thực tế. Tiêu đề mỗi ảnh có dạng <b>Predicted (Actual)</b>. Màu xanh là dự đoán đúng, màu đỏ là dự đoán sai.</p>
