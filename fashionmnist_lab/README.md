@@ -202,14 +202,14 @@ python -m src.predict --image path/to/image.png --checkpoint reports/cnn/fashion
 ### 7.6. Kiểm thử
 
 ```powershell
-pytest -q
+python -m pytest -q
 ```
 
 ### 7.7. Notebook
 
 Mở `notebooks/01_data_analysis_and_experiments.ipynb` từ thư mục gốc dự án.
 
-Notebook giữ phần EDA và gọi chung `src.train` / `src.evaluate` cho phần huấn luyện, tránh duy trì một MLP/CNN/training loop độc lập gây lệch kết quả. Mặc định `RUN_TRAINING = False` để đọc kết quả đã lưu. Đổi thành `True` khi muốn huấn luyện và đánh giá lại.
+Kiểm tra notebook trước khi nộp: nội dung notebook trên repository cần được đồng bộ với pipeline `src.train` / `src.evaluate` và các kết quả thực nghiệm mới nhất.
 
 ## 8. Cấu hình thực nghiệm
 
@@ -231,16 +231,16 @@ Cấu hình chi tiết nằm trong `configs/mlp.yaml` và `configs/cnn.yaml`.
 
 | Chỉ số | MLP | CNN |
 |---|---:|---:|
-| Best validation accuracy | 89,48% | 92,05% |
-| Test accuracy | 88,65% | 91,30% |
-| Test Macro-F1 | 88,62% | 91,32% |
-| Test loss | 0,3227 | 0,2473 |
-| Training time | 21,88 s | 201,26 s |
-| Inference latency | 0,0673 ms/ảnh | 0,2684 ms/ảnh |
+| Best validation accuracy | 89,15% | 92,25% |
+| Test accuracy | 88,34% | 92,20% |
+| Test Macro-F1 | 88,35% | 92,15% |
+| Test loss | 0,3276 | 0,2331 |
+| Training time | 15 s | 250 s |
+| Inference latency | 0,067 ms/ảnh | 0,339 ms/ảnh |
 | Parameters | 235.146 | 241.994 |
-| Epoch thực chạy | 15 | 12 |
+| Epoch thực chạy | 15 | 15 |
 
-**Nhận xét:** CNN cao hơn MLP 2,65 điểm phần trăm về test accuracy và 2,71 điểm phần trăm về Macro-F1. CNN có test loss thấp hơn. MLP có thời gian train và latency thấp hơn trong lần đo hiện tại. Hai mô hình có số tham số gần nhau; số tham số không đại diện đầy đủ cho chi phí phép tính.
+**Nhận xét:** CNN cao hơn MLP 3,86 điểm phần trăm về test accuracy và 3,80 điểm phần trăm về Macro-F1. CNN có test loss thấp hơn. MLP có thời gian train và latency thấp hơn trong lần đo hiện tại. Hai mô hình có số tham số gần nhau; số tham số không đại diện đầy đủ cho chi phí phép tính.
 
 Thời gian và latency phụ thuộc thiết bị, tải hệ thống và điều kiện đo; không nên xem đây là benchmark phần cứng phổ quát.
 
@@ -248,18 +248,18 @@ Thời gian và latency phụ thuộc thiết bị, tải hệ thống và đi�
 
 | Class | MLP F1 | CNN F1 |
 |---|---:|---:|
-| T-shirt/top | 0,8433 | 0,8738 |
-| Trouser | 0,9798 | 0,9856 |
-| Pullover | 0,8042 | 0,8734 |
-| Dress | 0,8894 | 0,9097 |
-| Coat | 0,8127 | 0,8610 |
-| Sandal | 0,9597 | 0,9767 |
-| Shirt | 0,6991 | 0,7506 |
-| Sneaker | 0,9439 | 0,9621 |
-| Bag | 0,9758 | 0,9711 |
-| Ankle boot | 0,9539 | 0,9685 |
+| T-shirt/top | 0,8387 | 0,8801 |
+| Trouser | 0,9786 | 0,9890 |
+| Pullover | 0,7978 | 0,8865 |
+| Dress | 0,8892 | 0,9235 |
+| Coat | 0,8047 | 0,8714 |
+| Sandal | 0,9599 | 0,9800 |
+| Shirt | 0,7017 | 0,7738 |
+| Sneaker | 0,9402 | 0,9578 |
+| Bag | 0,9701 | 0,9881 |
+| Ankle boot | 0,9537 | 0,9645 |
 
-CNN có F1 cao hơn ở 9/10 lớp; Bag là ngoại lệ. Shirt là lớp có F1 thấp nhất ở cả hai mô hình.
+CNN có F1 cao hơn ở cả 10 lớp trong lần chạy này. Shirt là lớp có F1 thấp nhất ở cả hai mô hình.
 
 ## 10. Confusion Matrix — phân tích lỗi
 
@@ -269,8 +269,8 @@ Confusion Matrix được tạo từ 10.000 ảnh test. **Hàng biểu diễn l�
 
 ![MLP confusion matrix](reports/mlp/confusion_matrix.png)
 
-- Dự đoán đúng trên đường chéo: 8.865/10.000.
-- Nhầm lẫn nổi bật: Shirt → T-shirt/top (156 ảnh).
+- Dự đoán đúng trên đường chéo: 8.834/10.000.
+- Nhầm lẫn nổi bật: Shirt → T-shirt/top (không giữ số liệu lỗi cũ; xem confusion_matrix.png được tạo ở lần evaluate mới).
 - Pullover → Shirt (87 ảnh).
 - Pullover → Coat (84 ảnh).
 - Coat → Pullover (83 ảnh).
@@ -280,7 +280,7 @@ Confusion Matrix được tạo từ 10.000 ảnh test. **Hàng biểu diễn l�
 
 ![CNN confusion matrix](reports/cnn/confusion_matrix.png)
 
-- Dự đoán đúng trên đường chéo: 9.130/10.000.
+- Dự đoán đúng trên đường chéo: 9.220/10.000.
 - Nhầm lẫn nổi bật: Coat → Shirt (95 ảnh).
 - T-shirt/top → Shirt (75 ảnh).
 - Pullover → Shirt (66 ảnh).
@@ -289,7 +289,7 @@ Confusion Matrix được tạo từ 10.000 ảnh test. **Hàng biểu diễn l�
 
 ### 10.3. Nhận xét so sánh
 
-CNN giảm tổng số lỗi từ 1.135 xuống 870 ảnh. Các nhầm lẫn Pullover → Coat giảm từ 84 xuống 36; Shirt → T-shirt/top giảm từ 156 xuống 105; Pullover → Shirt giảm từ 87 xuống 66. Tuy nhiên, Coat → Shirt tăng từ 77 lên 95. Như vậy CNN cải thiện tổng thể nhưng không cải thiện mọi cặp lớp.
+CNN giảm số lỗi từ 1.166 xuống 780 ảnh (theo test accuracy mới). Các nhầm lẫn Pullover → Coat giảm từ cần đọc lại từ confusion matrix mới; Shirt → T-shirt/top giảm từ cần đọc lại từ confusion matrix mới; Pullover → Shirt giảm từ cần đọc lại từ confusion matrix mới. Tuy nhiên, Coat → Shirt tăng từ cần đọc lại từ confusion matrix mới. Như vậy CNN cải thiện tổng thể nhưng không cải thiện mọi cặp lớp.
 
 Kết quả này phù hợp với EDA: các lớp trang phục phía trên có ảnh trung bình tương đối gần nhau. Mô hình vẫn gặp khó khăn khi phân biệt các kiểu áo có hình dáng tương tự.
 
