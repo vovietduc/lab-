@@ -30,13 +30,13 @@ FashionMNIST gồm 70.000 ảnh grayscale 28×28 thuộc 10 lớp: T-shirt/top, 
 fashionmnist_lab/
 ├── configs/              # Cấu hình CNN và MLP
 ├── data/                 # FashionMNIST
-├── docs/                 # Tài liệu dữ liệu, mô hình, train, evaluate
+├── docs/                 # Tài liệu dữ liệu, mô hình, train, evaluate, audit
 ├── notebooks/            # Notebook thử nghiệm
 ├── reports/
 │   ├── cnn/              # Checkpoint, metrics, plots CNN
 │   ├── mlp/              # Checkpoint, metrics, plots MLP
 │   └── final_report/     # report.md và report.docx
-├── src/                  # dataset, model, train, evaluate, predict, utils
+├── src/                  # dataset, data_audit, model, train, evaluate, predict, utils
 ├── tests/
 ├── requirements.txt
 └── README.md
@@ -56,6 +56,7 @@ Cài PyTorch CPU/CUDA phù hợp theo https://pytorch.org/get-started/locally/
 ```powershell
 python -m src.model
 python -m src.dataset
+python -m src.data_audit
 python -m src.train --dry-run
 python -m src.train
 python -m src.train --config configs/mlp.yaml
@@ -94,6 +95,9 @@ Dry run chạy một epoch trên tập mẫu nhỏ và không ghi đè kết qu�
 **Nhận xét:** CNN cao hơn MLP 2.65 điểm phần trăm về test accuracy và có macro-F1 cao hơn; test loss thấp hơn. MLP huấn luyện nhanh hơn và có latency thấp hơn trong lần đo hiện tại. Hai mô hình có số tham số gần nhau. Thời gian phụ thuộc phần cứng và điều kiện đo.
 
 Shirt là lớp khó nhất (F1 MLP 0.6991; CNN 0.7506). CNN tốt hơn trên phần lớn lớp; riêng Bag, MLP đạt F1 0.9758, nhỉnh hơn CNN 0.9711.
+
+## Data Audit
+Chạy `python -m src.data_audit` để kiểm tra số lượng mẫu, kích thước ảnh, kiểu dữ liệu, miền pixel, nhãn, phân chia train/validation, phân phối lớp và thống kê chuẩn hóa chỉ từ train split. Script in kết quả PASS/FAIL; chỉ ghi nhận audit đạt sau khi chạy thực tế. Xem `docs/data_audit.md`.
 
 ## File đầu ra
 Mỗi thư mục reports/mlp/ và reports/cnn/ có history.json, train_summary.json, test_metrics.json, classification_report.txt, training_curves.png, confusion_matrix.png, predictions_random.png, predictions_wrong.png và checkpoint .pth. Báo cáo tổng hợp nằm trong reports/final_report/.
