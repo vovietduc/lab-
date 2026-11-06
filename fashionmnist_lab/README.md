@@ -1,9 +1,9 @@
-# FashionMNIST Classification — MLP vs CNN
+# FashionMNIST Classification with PyTorch — Chapter 2 Practice 1
 
 > **Chapter 2 – Artificial Neural Networks | Practice 1**  
-> Bài thực hành phân loại ảnh FashionMNIST bằng PyTorch, tập trung vào quy trình dữ liệu, MLP, CNN, backpropagation, đánh giá và phân tích lỗi.
+> Bài thực hành phân loại ảnh FashionMNIST bằng PyTorch. Trọng tâm: thử nghiệm cấu trúc mạng, trực quan hóa loss và hiển thị ảnh dự đoán so với nhãn thực tế.
 
-**Phạm vi chính thức:** chỉ so sánh **MLP và CNN**. ResNet18 không thuộc phạm vi báo cáo này.
+**Phạm vi:** thực hành quy trình PyTorch theo đề bài. MLP và CNN là hai cấu trúc mạng dùng cho Task 1; so sánh kết quả chỉ là phần hỗ trợ, không phải mục tiêu chính.
 
 ---
 
@@ -16,7 +16,9 @@
 - Theo dõi train/validation loss, accuracy và sử dụng early stopping.
 - Đánh giá trên test set bằng Accuracy, Precision, Recall, Macro-F1 và Confusion Matrix.
 - Thực hiện data audit, lưu/nạp checkpoint và dự đoán ảnh mới.
-- So sánh chất lượng phân loại và chi phí tính toán của hai kiến trúc.
+- Thử nghiệm cấu trúc mạng MLP và CNN để đáp ứng Task 1.
+- Trực quan hóa train loss và validation loss theo epoch để đáp ứng Task 2.
+- Hiển thị ảnh FashionMNIST cùng nhãn thực tế và nhãn dự đoán để đáp ứng Task 3.
 
 ## 2. Công nghệ sử dụng
 
@@ -211,7 +213,18 @@ Mở `notebooks/01_data_analysis_and_experiments.ipynb` từ thư mục gốc d�
 
 Kiểm tra notebook trước khi nộp: nội dung notebook trên repository cần được đồng bộ với pipeline `src.train` / `src.evaluate` và các kết quả thực nghiệm mới nhất.
 
-## 8. Cấu hình thực nghiệm
+## 8. Đối chiếu ba nhiệm vụ (Tasks) theo đề bài
+
+### Task 1 — Thử nghiệm cấu trúc mạng / hyperparameters
+Dùng MLP (Flatten + Linear) và CNN (Convolution + Pooling) làm hai cấu trúc mạng trong cùng pipeline. Các cấu hình dùng chung seed, batch size, optimizer, learning rate, weight decay và số epoch tối đa; khác biệt kiến trúc là nội dung được khảo sát. Đây là thí nghiệm về **cấu trúc mạng**, không phải cuộc thi thuật toán tổng quát.
+
+### Task 2 — Visualize Loss
+Sau mỗi epoch, src.train lưu train_loss và val_loss vào history.json; src.utils.plot_history() tạo training_curves.png. Notebook có biểu đồ loss theo epoch. Biểu đồ và số liệu phải đến từ cùng lần chạy cuối.
+
+### Task 3 — Display predicted vs actual images
+src.evaluate gọi show_predictions() để lưu predictions_random.png và predictions_wrong.png. Mỗi ảnh có nhãn dự đoán và nhãn thực tế trong ngoặc; màu xanh biểu thị đúng, màu đỏ biểu thị sai. Notebook và báo cáo cần hiển thị trực tiếp các ảnh này.
+
+## 9. Cấu hình thực nghiệm
 
 | Tham số | MLP | CNN |
 |---|---:|---:|
@@ -227,7 +240,7 @@ Kiểm tra notebook trước khi nộp: nội dung notebook trên repository c�
 
 Cấu hình chi tiết nằm trong `configs/mlp.yaml` và `configs/cnn.yaml`.
 
-## 9. Kết quả thực nghiệm hiện được lưu
+## 10. Kết quả thực nghiệm hiện được lưu
 
 | Chỉ số | MLP | CNN |
 |---|---:|---:|
@@ -244,7 +257,7 @@ Cấu hình chi tiết nằm trong `configs/mlp.yaml` và `configs/cnn.yaml`.
 
 Thời gian và latency phụ thuộc thiết bị, tải hệ thống và điều kiện đo; không nên xem đây là benchmark phần cứng phổ quát.
 
-### 9.1. F1-score theo lớp
+### 10.1. F1-score theo lớp
 
 | Class | MLP F1 | CNN F1 |
 |---|---:|---:|
@@ -261,7 +274,7 @@ Thời gian và latency phụ thuộc thiết bị, tải hệ thống và đi�
 
 CNN có F1 cao hơn ở cả 10 lớp trong lần chạy này. Shirt là lớp có F1 thấp nhất ở cả hai mô hình.
 
-## 10. Confusion Matrix — phân tích lỗi
+## 11. Confusion Matrix — phân tích lỗi
 
 Confusion Matrix được tạo từ 10.000 ảnh test. **Hàng biểu diễn lớp thực tế, cột biểu diễn lớp dự đoán**.
 
@@ -293,7 +306,7 @@ CNN giảm số lỗi từ 1.166 xuống 780 ảnh (theo test accuracy mới). C
 
 Kết quả này phù hợp với EDA: các lớp trang phục phía trên có ảnh trung bình tương đối gần nhau. Mô hình vẫn gặp khó khăn khi phân biệt các kiểu áo có hình dáng tương tự.
 
-## 11. Data Audit
+## 12. Data Audit
 
 File `reports/data_audit/audit_summary.json` ghi nhận **12/12 checks PASS**:
 
@@ -313,7 +326,7 @@ Mean/std audit: 0,2858626 / 0,3529320; tính từ training split.
 
 **Phân biệt phạm vi:** notebook EDA còn thực hiện kiểm tra ảnh trống, ảnh trùng trong train và giao nhau chính xác giữa train/test; output notebook ghi nhận 0 cho cả ba. Ba kiểm tra này là phần cleaning EDA, không nằm trong 12 checks của `src.data_audit.py`.
 
-## 12. Cấu trúc dự án
+## 13. Cấu trúc dự án
 
 ```text
 fashionmnist_lab/
@@ -352,7 +365,7 @@ fashionmnist_lab/
 └── README.md
 ```
 
-### 12.1. Các file đầu ra chính
+### 13.1. Các file đầu ra chính
 
 Mỗi thư mục `reports/mlp/` và `reports/cnn/` lưu:
 - `history.json`: loss và accuracy theo epoch.
@@ -365,7 +378,7 @@ Mỗi thư mục `reports/mlp/` và `reports/cnn/` lưu:
 - `predictions_wrong.png`: ví dụ dự đoán sai.
 - Checkpoint `.pth`: trọng số và thông tin tiền xử lý.
 
-## 13. Lưu ý tái lập và giới hạn
+## 14. Lưu ý tái lập và giới hạn
 
 - Kết quả báo cáo lấy từ các file kết quả hiện có trong repository tại thời điểm rà soát.
 - Notebook cũ từng có MLP/CNN và training loop độc lập với kết quả khác. Phần huấn luyện notebook đã được chỉnh để gọi chung `src.train` và `src.evaluate`; không sử dụng các kết quả cũ đó cho bảng kết quả chính.
@@ -374,7 +387,7 @@ Mỗi thư mục `reports/mlp/` và `reports/cnn/` lưu:
 - Thời gian train/latency phụ thuộc môi trường thực thi.
 - Không dùng test set để chọn mô hình hoặc tinh chỉnh hyperparameter.
 
-## 14. Tài liệu tham khảo
+## 15. Tài liệu tham khảo
 
 1. [Fashion-MNIST — Zalando Research](https://github.com/zalandoresearch/fashion-mnist)
 2. [PyTorch Tutorials](https://pytorch.org/tutorials/)
