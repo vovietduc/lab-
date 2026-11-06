@@ -13,7 +13,7 @@
 
 Bài thực hành xây dựng pipeline phân loại ảnh FashionMNIST bằng PyTorch và so sánh hai kiến trúc MLP, CNN. Pipeline bao gồm khảo sát dữ liệu, tiền xử lý, chia train/validation/test, xây dựng mô hình, huấn luyện bằng backpropagation, chọn checkpoint theo validation accuracy và đánh giá trên test set.
 
-Trong kết quả hiện có, MLP đạt test accuracy 88,65% và Macro-F1 88,62%; CNN đạt test accuracy 91,30% và Macro-F1 91,32%. CNN cao hơn 2,65 điểm phần trăm về accuracy và 2,71 điểm phần trăm về Macro-F1. CNN có chất lượng phân loại tốt hơn trong cấu hình thử nghiệm, trong khi MLP có thời gian huấn luyện và latency thấp hơn trong lần đo này.
+Trong kết quả hiện có, MLP đạt test accuracy 88,34% và Macro-F1 88,35%; CNN đạt test accuracy 92,20% và Macro-F1 92,15%. CNN cao hơn 3,86 điểm phần trăm về accuracy và 3,80 điểm phần trăm về Macro-F1. CNN có chất lượng phân loại tốt hơn trong cấu hình thử nghiệm, trong khi MLP có thời gian huấn luyện và latency thấp hơn trong lần đo này.
 
 ## 1. GIỚI THIỆU
 
@@ -130,7 +130,7 @@ PCA được thực hiện trên một mẫu ngẫu nhiên 6.000 ảnh. Với 50
 | MLP dropout | 0,2 |
 | CNN dropout | 0,25 |
 
-Hai mô hình dùng cùng cách chia dữ liệu và test set. Checkpoint được chọn theo validation accuracy tốt nhất. MLP chạy 15 epoch; CNN dừng sau 12 epoch do không cải thiện validation accuracy trong 4 epoch liên tiếp.
+Hai mô hình dùng cùng cách chia dữ liệu và test set. Checkpoint được chọn theo validation accuracy tốt nhất. MLP chạy 15 epoch; CNN dừng sau 15 epoch do không cải thiện validation accuracy trong 4 epoch liên tiếp.
 
 ## 6. KẾT QUẢ THỰC NGHIỆM
 
@@ -138,43 +138,43 @@ Hai mô hình dùng cùng cách chia dữ liệu và test set. Checkpoint đư�
 
 | Chỉ số | MLP | CNN |
 |---|---:|---:|
-| Best validation accuracy | 89,48% | 92,05% |
-| Test accuracy | 88,65% | 91,30% |
-| Test Macro-F1 | 88,62% | 91,32% |
-| Test loss | 0,3227 | 0,2473 |
-| Training time | 21,88 s | 201,26 s |
-| Inference latency | 0,0673 ms/ảnh | 0,2684 ms/ảnh |
+| Best validation accuracy | 89,15% | 92,25% |
+| Test accuracy | 88,34% | 92,20% |
+| Test Macro-F1 | 88,35% | 92,15% |
+| Test loss | 0,3276 | 0,2331 |
+| Training time | 15 s | 250 s |
+| Inference latency | 0,067 ms/ảnh | 0,339 ms/ảnh |
 | Parameters | 235.146 | 241.994 |
-| Epoch thực chạy | 15 | 12 |
+| Epoch thực chạy | 15 | 15 |
 
-CNN cao hơn MLP 2,65 điểm phần trăm về test accuracy và 2,71 điểm phần trăm về Macro-F1. Test loss thấp hơn cho thấy dự đoán của CNN có chất lượng tốt hơn theo hàm mất mát đang sử dụng.
+CNN cao hơn MLP 3,86 điểm phần trăm về test accuracy và 3,80 điểm phần trăm về Macro-F1. Test loss thấp hơn cho thấy dự đoán của CNN có chất lượng tốt hơn theo hàm mất mát đang sử dụng.
 
 MLP có thời gian train và latency thấp hơn trong lần đo hiện tại. Dù số tham số hai mô hình gần nhau, CNN có phép tích chập trên feature maps nên chi phí tính toán thực tế không thể suy ra chỉ từ số tham số.
 
 ### 6.2. Đường cong huấn luyện
 
-Bốn biểu đồ so sánh train loss, validation loss, train accuracy và validation accuracy được tạo từ `history.json` của từng mô hình. CNN có 12 epoch thực chạy, MLP có 15 epoch; không nội suy thêm điểm cho CNN.
+Bốn biểu đồ so sánh train loss, validation loss, train accuracy và validation accuracy được tạo từ `history.json` của từng mô hình. CNN có 15 epoch thực chạy, MLP có 15 epoch; không nội suy thêm điểm cho CNN.
 
 - Train loss giảm ở cả hai mô hình.
 - Validation loss có dao động trong quá trình huấn luyện.
 - CNN đạt validation loss thấp nhất khoảng 0,2296 tại epoch 6.
-- CNN đạt validation accuracy tốt nhất 92,05% tại epoch 8; checkpoint tốt nhất được khôi phục từ epoch này.
-- MLP đạt validation accuracy tốt nhất 89,48% tại epoch 15.
+- CNN đạt validation accuracy tốt nhất 92,25% tại epoch 8; checkpoint tốt nhất được khôi phục từ epoch này.
+- MLP đạt validation accuracy tốt nhất 89,15% tại epoch 15.
 
 ### 6.3. Phân tích theo từng lớp
 
 | Lớp | MLP F1 | CNN F1 | Nhận xét |
 |---|---:|---:|---|
-| T-shirt/top | 0,8433 | 0,8738 | CNN tốt hơn |
-| Trouser | 0,9798 | 0,9856 | Cả hai tốt |
-| Pullover | 0,8042 | 0,8734 | CNN cải thiện rõ |
-| Dress | 0,8894 | 0,9097 | CNN tốt hơn |
-| Coat | 0,8127 | 0,8610 | CNN tốt hơn |
-| Sandal | 0,9597 | 0,9767 | CNN tốt hơn |
-| Shirt | 0,6991 | 0,7506 | Lớp khó nhất |
-| Sneaker | 0,9439 | 0,9621 | CNN tốt hơn |
-| Bag | 0,9758 | 0,9711 | MLP nhỉnh hơn |
-| Ankle boot | 0,9539 | 0,9685 | CNN tốt hơn |
+| T-shirt/top | 0,8387 | 0,8801 | CNN tốt hơn |
+| Trouser | 0,9786 | 0,9890 | Cả hai tốt |
+| Pullover | 0,7978 | 0,8865 | CNN cải thiện rõ |
+| Dress | 0,8892 | 0,9235 | CNN tốt hơn |
+| Coat | 0,8047 | 0,8714 | CNN tốt hơn |
+| Sandal | 0,9599 | 0,9800 | CNN tốt hơn |
+| Shirt | 0,7017 | 0,7738 | Lớp khó nhất |
+| Sneaker | 0,9402 | 0,9578 | CNN tốt hơn |
+| Bag | 0,9701 | 0,9881 | MLP nhỉnh hơn |
+| Ankle boot | 0,9537 | 0,9645 | CNN tốt hơn |
 
 CNN đạt F1 cao hơn ở 9/10 lớp. Shirt là lớp có F1 thấp nhất ở cả hai mô hình; Bag là lớp duy nhất MLP nhỉnh hơn CNN.
 
@@ -186,7 +186,7 @@ Confusion Matrix được tạo từ checkpoint hiện tại và 10.000 ảnh te
 
 ![MLP Confusion Matrix](../mlp/confusion_matrix.png)
 
-MLP dự đoán đúng 8.865/10.000 ảnh, tương ứng 88,65%. Các cặp nhầm lẫn lớn nhất:
+MLP dự đoán đúng 8.834/10.000 ảnh, tương ứng 88,34%. Các cặp nhầm lẫn lớn nhất:
 
 | Lớp thực tế | Dự đoán thành | Số ảnh |
 |---|---|---:|
@@ -202,7 +202,7 @@ Các nhầm lẫn chủ yếu tập trung ở nhóm áo. Điều này phù hợp
 
 ![CNN Confusion Matrix](../cnn/confusion_matrix.png)
 
-CNN dự đoán đúng 9.130/10.000 ảnh, tương ứng 91,30%. Các cặp nhầm lẫn lớn nhất:
+CNN dự đoán đúng 9.220/10.000 ảnh, tương ứng 92,20%. Các cặp nhầm lẫn lớn nhất:
 
 | Lớp thực tế | Dự đoán thành | Số ảnh |
 |---|---|---:|
@@ -212,7 +212,7 @@ CNN dự đoán đúng 9.130/10.000 ảnh, tương ứng 91,30%. Các cặp nh�
 | Coat | Pullover | 63 |
 | Dress | Shirt | 51 |
 
-CNN giảm tổng số lỗi từ 1.135 xuống 870 ảnh. Một số cặp lỗi giảm rõ:
+CNN giảm tổng số lỗi từ 1.166 xuống 780 ảnh. Một số cặp lỗi giảm rõ:
 - Pullover → Coat: 84 xuống 36 ảnh.
 - Shirt → T-shirt/top: 156 xuống 105 ảnh.
 - Pullover → Shirt: 87 xuống 66 ảnh.
@@ -253,7 +253,7 @@ CNN có test accuracy và Macro-F1 cao hơn trong cấu hình thực nghiệm. L
 
 ### 9.2. Chi phí tính toán
 
-MLP train trong 21,88 giây và latency 0,0673 ms/ảnh; CNN tương ứng 201,26 giây và 0,2684 ms/ảnh. CNN chậm hơn trong lần đo này dù số tham số chỉ chênh lệch 6.848. Thời gian phụ thuộc thiết bị, tải hệ thống, batch size và điều kiện đo.
+MLP train trong 15 giây và latency 0,067 ms/ảnh; CNN tương ứng 250 giây và 0,339 ms/ảnh. CNN chậm hơn trong lần đo này dù số tham số chỉ chênh lệch 6.848. Thời gian phụ thuộc thiết bị, tải hệ thống, batch size và điều kiện đo.
 
 ### 9.3. Hạn chế
 
@@ -267,7 +267,7 @@ MLP train trong 21,88 giây và latency 0,0673 ms/ảnh; CNN tương ứng 201,2
 
 Bài thực hành đã triển khai pipeline FashionMNIST bằng PyTorch: tải dữ liệu, EDA, tiền xử lý, Dataset/DataLoader, xây dựng MLP/CNN, forward, CrossEntropyLoss, backpropagation, Adam, validation, lưu/nạp checkpoint và đánh giá test.
 
-Trong kết quả hiện có, CNN đạt test accuracy 91,30% và Macro-F1 91,32%, cao hơn MLP lần lượt 88,65% và 88,62%. CNN phù hợp hơn về chất lượng phân loại trong cấu hình thử nghiệm; MLP có lợi thế về thời gian huấn luyện và độ trễ suy luận. Phân tích Confusion Matrix cho thấy các lỗi còn tập trung ở nhóm áo có hình dáng tương tự, đặc biệt là Shirt.
+Trong kết quả hiện có, CNN đạt test accuracy 92,20% và Macro-F1 92,15%, cao hơn MLP lần lượt 88,34% và 88,35%. CNN phù hợp hơn về chất lượng phân loại trong cấu hình thử nghiệm; MLP có lợi thế về thời gian huấn luyện và độ trễ suy luận. Phân tích Confusion Matrix cho thấy các lỗi còn tập trung ở nhóm áo có hình dáng tương tự, đặc biệt là Shirt.
 
 ## 11. HƯỚNG PHÁT TRIỂN
 
