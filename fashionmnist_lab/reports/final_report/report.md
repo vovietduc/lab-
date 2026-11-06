@@ -3,60 +3,27 @@
 
 **Học phần:** Artificial Neural Networks / Deep Learning  
 **Công cụ:** Python, PyTorch, Torchvision, Matplotlib, Scikit-learn  
-**Bộ dữ liệu:** FashionMNIST
-
----
+**Bộ dữ liệu:** FashionMNIST  
+**Phạm vi:** Hai mô hình MLP và CNN; không sử dụng ResNet18.
 
 ## TÓM TẮT
-Bài thực hành xây dựng pipeline phân loại ảnh thời trang FashionMNIST bằng PyTorch và so sánh hai kiến trúc mạng neural network: Multi-Layer Perceptron (MLP) và Convolutional Neural Network (CNN). Hai mô hình được huấn luyện từ đầu trên cùng bộ dữ liệu, cùng cách chia train/validation/test và cùng quy trình đánh giá. Báo cáo tập trung giải thích cách chuẩn bị dữ liệu, kiến trúc, forward pass, tính loss, backpropagation, tối ưu hóa và đánh giá mô hình.
-
-**Lưu ý:** Các ô kết quả được để trống có chủ đích. Cần chạy thực nghiệm trên máy trước khi điền số liệu, chèn hình và đưa ra kết luận; không sử dụng kết quả giả định.
+Bài thực hành xây dựng pipeline phân loại ảnh FashionMNIST bằng PyTorch và so sánh MLP với CNN. Hai mô hình được huấn luyện từ đầu, dùng cùng seed, cách chia dữ liệu và test set. CNN đạt test accuracy 91,30%, macro-F1 91,32%; MLP đạt test accuracy 88,65%, macro-F1 88,62%. CNN có chất lượng phân loại tốt hơn trong cấu hình thử nghiệm, trong khi MLP có thời gian huấn luyện và độ trễ suy luận thấp hơn.
 
 ## 1. GIỚI THIỆU
-Phân loại ảnh là bài toán xác định lớp đối tượng tương ứng với một ảnh đầu vào. FashionMNIST là bộ dữ liệu phù hợp để thực hành vì có cấu trúc đơn giản, gồm ảnh grayscale kích thước 28×28 và 10 nhãn thời trang. Mặc dù ảnh có độ phân giải thấp, một số lớp có hình dạng tương tự nhau nên mô hình vẫn cần học được đặc trưng hữu ích.
-
-Mục tiêu của bài là cài đặt hai cách tiếp cận:
-- MLP: biến ảnh thành vector một chiều và sử dụng các lớp fully connected.
-- CNN: sử dụng convolution và pooling để học đặc trưng không gian của ảnh.
-
-Qua đó, bài thực hành làm rõ sự khác biệt giữa mạng fully connected và mạng tích chập khi xử lý dữ liệu hình ảnh.
+FashionMNIST là bài toán phân loại ảnh gồm 10 loại quần áo và phụ kiện. Mục tiêu là cài đặt hai cách tiếp cận: MLP sử dụng fully connected layers và CNN sử dụng convolution để khai thác đặc trưng không gian. Bài thực hành vận dụng Tensor, Dataset, DataLoader, transforms, forward pass, loss, backpropagation, optimizer, đánh giá và lưu/nạp mô hình.
 
 ## 2. CƠ SỞ LÝ THUYẾT
+### 2.1. MLP
+MLP gồm input layer, hidden layers và output layer. Ảnh 28×28 được Flatten thành vector 784 chiều. Kiến trúc: Linear(784,256) → ReLU → Dropout → Linear(256,128) → ReLU → Dropout → Linear(128,10). MLP đơn giản và phù hợp làm baseline, nhưng Flatten làm mất bố cục không gian hai chiều của ảnh.
 
-### 2.1. Multi-Layer Perceptron
-MLP gồm input layer, một hoặc nhiều hidden layers và output layer. Mỗi neuron ở một lớp được kết nối với các neuron ở lớp kế tiếp. Với FashionMNIST, ảnh 28×28 được Flatten thành vector 784 phần tử. Mỗi lớp Linear thực hiện phép biến đổi tuyến tính, sau đó hàm kích hoạt ReLU tạo tính phi tuyến.
+### 2.2. CNN
+CNN xử lý tensor ảnh 2D và dùng kernel convolution để học đặc trưng cục bộ. Mô hình sử dụng ba tầng convolution có 32, 64 và 128 kênh, kết hợp Batch Normalization, ReLU, Max Pooling, Adaptive Average Pooling và classifier 1152 → 128 → 10. CNN giữ được quan hệ không gian giữa các pixel và chia sẻ trọng số trong kernel.
 
-Ưu điểm của MLP là cấu trúc đơn giản, dễ triển khai và phù hợp làm mô hình baseline. Hạn chế là bước Flatten làm mất cấu trúc không gian hai chiều; mô hình không có cơ chế tích chập để khai thác trực tiếp các pixel lân cận.
-
-### 2.2. Convolutional Neural Network
-CNN được thiết kế cho dữ liệu có cấu trúc lưới như ảnh. Lớp convolution sử dụng các kernel để trích xuất đặc trưng cục bộ; các lớp đầu thường học cạnh và đường viền, các lớp sâu hơn có thể kết hợp thành đặc trưng phức tạp hơn. ReLU bổ sung tính phi tuyến. Max Pooling giảm kích thước feature map và giúp giảm chi phí tính toán.
-
-CNN giữ được quan hệ không gian giữa các pixel và chia sẻ trọng số trong kernel. Vì vậy, CNN thường phù hợp với bài toán phân loại ảnh hơn MLP thuần. Tuy nhiên, hiệu quả cần được xác nhận bằng kết quả thực nghiệm.
-
-### 2.3. Quy trình học trong PyTorch
-Với mỗi mini-batch, mô hình thực hiện:
-1. Forward: tính logits từ ảnh đầu vào.
-2. Loss: CrossEntropyLoss đo sai lệch giữa logits và nhãn thật.
-3. Backward: loss.backward() tính gradient theo các tham số.
-4. Update: optimizer.step() cập nhật trọng số theo gradient.
-5. Zero gradient: optimizer.zero_grad() xóa gradient cũ trước batch kế tiếp.
-
-Quá trình lặp lại qua nhiều epoch. Validation được dùng để theo dõi khả năng tổng quát hóa và lựa chọn checkpoint; test set chỉ dùng để đánh giá cuối cùng.
+### 2.3. Training loop
+Với mỗi mini-batch: (1) forward tạo logits; (2) CrossEntropyLoss tính sai số; (3) loss.backward() lan truyền gradient ngược; (4) optimizer.step() cập nhật trọng số; (5) optimizer.zero_grad() xóa gradient trước batch kế tiếp. Validation được dùng chọn checkpoint; test set chỉ dùng đánh giá cuối cùng.
 
 ## 3. DỮ LIỆU VÀ TIỀN XỬ LÝ
-
-### 3.1. Mô tả FashionMNIST
-Bộ dữ liệu có 70.000 ảnh grayscale, mỗi ảnh kích thước 28×28 pixel và thuộc một trong 10 lớp:
-
-| Nhãn | Lớp | Nhãn | Lớp |
-|---:|---|---:|---|
-| 0 | T-shirt/top | 5 | Sandal |
-| 1 | Trouser | 6 | Shirt |
-| 2 | Pullover | 7 | Sneaker |
-| 3 | Dress | 8 | Bag |
-| 4 | Coat | 9 | Ankle boot |
-
-### 3.2. Chia tập dữ liệu
+FashionMNIST có 70.000 ảnh grayscale 28×28, gồm T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag và Ankle boot.
 
 | Tập | Số ảnh | Mục đích |
 |---|---:|---|
@@ -64,141 +31,107 @@ Bộ dữ liệu có 70.000 ảnh grayscale, mỗi ảnh kích thước 28×28 p
 | Validation | 10.000 | Theo dõi và chọn checkpoint |
 | Test | 10.000 | Đánh giá cuối cùng |
 
-Train và validation được tách từ 60.000 ảnh train gốc với seed 42. Test là tập test chính thức và không được dùng để điều chỉnh mô hình.
+60.000 ảnh train gốc được chia train/validation với seed 42. Ảnh được chuyển thành tensor float32 và chuẩn hóa theo x_norm = (x − mean_train) / std_train. Mean/std chỉ tính từ train split để tránh rò rỉ dữ liệu. Input CNN có shape (B,1,28,28), còn MLP nhận vector 784 chiều sau Flatten.
 
-### 3.3. Chuẩn hóa
-Ảnh được chuyển về float32 trong khoảng [0,1], sau đó chuẩn hóa theo công thức:
-
-x_normalized = (x - mean_train) / std_train
-
-Mean và standard deviation chỉ được tính từ phần train nhằm tránh rò rỉ thông tin từ validation/test. Tensor đầu vào có kích thước (B, 1, 28, 28).
-
-## 4. THIẾT KẾ MÔ HÌNH
-
-### 4.1. MLP
-Kiến trúc sử dụng:
-- Input: ảnh 1×28×28.
-- Flatten: 784 đặc trưng.
-- Fully connected: 784 → 256, ReLU, Dropout.
-- Fully connected: 256 → 128, ReLU, Dropout.
-- Output: 128 → 10 logits.
-
-MLP xử lý toàn bộ vector pixel cùng lúc. Đây là kiến trúc baseline để quan sát hiệu quả của fully connected layers khi không có phép tích chập.
-
-### 4.2. CNN
-Kiến trúc sử dụng:
-- Conv2D: 1 → 32 channels, kernel 3×3; BatchNorm, ReLU, MaxPool.
-- Conv2D: 32 → 64 channels, kernel 3×3; BatchNorm, ReLU, MaxPool.
-- Conv2D: 64 → 128 channels, kernel 3×3; BatchNorm, ReLU.
-- Adaptive Average Pooling: đưa feature map về 3×3.
-- Flatten và Fully Connected: 1152 → 128 → 10.
-
-CNN nhận trực tiếp tensor ảnh 2D, học các bộ lọc từ dữ liệu và tổng hợp đặc trưng qua các tầng.
-
-### 4.3. So sánh thiết kế
-
+## 4. THIẾT KẾ MÔ HÌNH VÀ THIẾT LẬP
 | Đặc điểm | MLP | CNN |
 |---|---|---|
-| Input | Flatten 784 chiều | Tensor ảnh 1×28×28 |
-| Thành phần chính | Linear, ReLU | Conv, Pooling, ReLU |
-| Không gian ảnh | Không giữ sau Flatten | Giữ cấu trúc không gian |
-| Chia sẻ trọng số | Không theo kernel | Có trong convolution |
-| Mục đích | Baseline đơn giản | Khai thác đặc trưng hình ảnh |
+| Input | Flatten 784 chiều | Ảnh 1×28×28 |
+| Thành phần | Linear, ReLU, Dropout | Conv2D, BatchNorm, ReLU, Pooling |
+| Cấu trúc | 784→256→128→10 | 1→32→64→128; GAP; 1152→128→10 |
+| Không gian ảnh | Không giữ sau Flatten | Khai thác qua convolution |
 
-## 5. THIẾT LẬP THỰC NGHIỆM
-
-Hai mô hình dùng cùng seed, cách chia dữ liệu và tập test.
-
-| Tham số | Giá trị mặc định |
-|---|---|
+| Tham số | Giá trị |
+|---|---:|
+| Seed | 42 |
 | Batch size | 128 |
 | Epoch tối đa | 15 |
 | Optimizer | Adam |
 | Learning rate | 0.001 |
 | Loss | CrossEntropyLoss |
-| Seed | 42 |
+| Weight decay | 0.0001 |
 | Early stopping patience | 4 |
-| MLP hidden sizes | 256, 128 |
-| CNN channels | 32, 64, 128 |
 
-Các tham số được cấu hình trong configs/default.yaml cho CNN và configs/mlp.yaml cho MLP.
+Hai mô hình dùng cùng seed, cách chia dữ liệu và test set. Checkpoint được lựa chọn theo validation accuracy tốt nhất. CNN dừng sau 12 epoch, MLP chạy đủ 15 epoch. Thời gian train và latency phụ thuộc phần cứng và điều kiện đo.
 
-## 6. KẾT QUẢ THỰC NGHIỆM
-
-### 6.1. Bảng kết quả tổng hợp
-
+## 5. KẾT QUẢ THỰC NGHIỆM
+### 5.1. Bảng so sánh
 | Chỉ số | MLP | CNN |
 |---|---:|---:|
-| Best validation accuracy | Chưa chạy | Chưa chạy |
-| Test accuracy | Chưa chạy | Chưa chạy |
-| Macro-F1 | Chưa chạy | Chưa chạy |
-| Test loss | Chưa chạy | Chưa chạy |
-| Training time (s) | Chưa chạy | Chưa chạy |
-| Inference latency (ms/ảnh) | Chưa chạy | Chưa chạy |
-| Số tham số | Chạy script | Chạy script |
+| Best validation accuracy | 89.48% | 92.05% |
+| Test accuracy | 88.65% | 91.30% |
+| Macro-F1 | 88.62% | 91.32% |
+| Test loss | 0.3227 | 0.2473 |
+| Training time | 21.88 s | 201.26 s |
+| Inference latency | 0.0673 ms/ảnh | 0.2684 ms/ảnh |
+| Số tham số | 235,146 | 241,994 |
+| Epoch đã chạy | 15 | 12 |
 
-Điền số liệu sau khi chạy hai lệnh train và evaluate. Nguồn số liệu là reports/mlp và reports/cnn.
+CNN cao hơn MLP 2.65 điểm phần trăm về test accuracy và khoảng 2.71 điểm phần trăm về macro-F1. Test loss của CNN thấp hơn. Số tham số chênh lệch 6.848. Ngược lại, CNN mất nhiều thời gian huấn luyện và có latency cao hơn trong lần đo này.
 
-### 6.2. Đường cong Loss và Accuracy
-Chèn hai hình training_curves.png được sinh ra trong mỗi thư mục kết quả.
+### 5.2. Đường cong huấn luyện – so sánh trực tiếp
+Cả bốn biểu đồ dùng chung trục X từ epoch 1 đến 15 và cùng giới hạn trục Y giữa MLP và CNN trong từng chỉ số. MLP có 15 điểm dữ liệu; CNN có 12 điểm và đường CNN kết thúc đúng tại epoch 12. Không nội suy hoặc thêm điểm giả. Accuracy được biểu diễn theo phần trăm.
 
-**Hình 1.** Đường cong loss và accuracy của MLP.  
-[Chèn reports/mlp/training_curves.png]
+**Train Loss**
+![Train Loss MLP vs CNN](train_loss_comparison.svg)
 
-**Hình 2.** Đường cong loss và accuracy của CNN.  
-[Chèn reports/cnn/training_curves.png]
+**Validation Loss**
+![Validation Loss MLP vs CNN](validation_loss_comparison.svg)
 
-Nhận xét:
-- So sánh train loss và validation loss.
-- Kiểm tra khoảng cách train accuracy và validation accuracy.
-- Nếu train loss giảm nhưng validation loss tăng, có thể mô hình đang overfitting.
-- Nếu cả hai accuracy đều thấp, mô hình có thể chưa học đủ hoặc cần điều chỉnh hyperparameter.
+**Train Accuracy**
+![Train Accuracy MLP vs CNN](train_accuracy_comparison.svg)
 
-### 6.3. Confusion Matrix
-**Hình 3.** Confusion matrix của MLP.  
-[Chèn reports/mlp/confusion_matrix.png]
+**Validation Accuracy**
+![Validation Accuracy MLP vs CNN](validation_accuracy_comparison.svg)
 
-**Hình 4.** Confusion matrix của CNN.  
-[Chèn reports/cnn/confusion_matrix.png]
+Train loss giảm ở cả hai mô hình. Validation loss có dao động; CNN đạt giá trị thấp nhất khoảng 0.2296 tại epoch 6, sau đó tăng/dao động. Vì vậy cần theo dõi khoảng cách train-validation và lựa chọn checkpoint dựa trên validation thay vì mặc định lấy epoch cuối.
 
-Phân tích các lớp có nhiều dự đoán sai nhất và so sánh khả năng phân biệt các nhóm quần áo có hình dáng tương tự.
+### 5.3. Phân tích theo từng lớp
+| Lớp | MLP F1 | CNN F1 | Nhận xét |
+|---|---:|---:|---|
+| T-shirt/top | 0.8433 | 0.8738 | CNN tốt hơn |
+| Trouser | 0.9798 | 0.9856 | Cả hai tốt |
+| Pullover | 0.8042 | 0.8734 | CNN cải thiện rõ |
+| Dress | 0.8894 | 0.9097 | CNN tốt hơn |
+| Coat | 0.8127 | 0.8610 | CNN tốt hơn |
+| Sandal | 0.9597 | 0.9767 | Cả hai tốt |
+| Shirt | 0.6991 | 0.7506 | Lớp khó nhất |
+| Sneaker | 0.9439 | 0.9621 | CNN tốt hơn |
+| Bag | 0.9758 | 0.9711 | MLP nhỉnh hơn nhẹ |
+| Ankle boot | 0.9539 | 0.9685 | CNN tốt hơn |
 
-### 6.4. Ảnh dự đoán
-**Hình 5.** Ví dụ dự đoán ngẫu nhiên của MLP.  
-[Chèn reports/mlp/predictions_random.png]
+Shirt là lớp khó nhất với cả hai mô hình. CNN cải thiện F1 ở phần lớn lớp, nhưng Bag là ngoại lệ khi MLP đạt F1 cao hơn một lượng nhỏ. Cần xem kết quả theo lớp và confusion matrix, không chỉ accuracy tổng thể.
 
-**Hình 6.** Ví dụ dự đoán ngẫu nhiên của CNN.  
-[Chèn reports/cnn/predictions_random.png]
+### 5.4. Confusion matrix và ví dụ dự đoán
+- MLP: ../mlp/confusion_matrix.png, ../mlp/predictions_random.png, ../mlp/predictions_wrong.png.
+- CNN: ../cnn/confusion_matrix.png, ../cnn/predictions_random.png, ../cnn/predictions_wrong.png.
+Confusion matrix thể hiện các cặp lớp thường bị nhầm; ảnh dự đoán đúng/sai giúp kiểm tra trực quan hành vi mô hình.
 
-**Hình 7.** Các ảnh dự đoán sai của hai mô hình.  
-[Chèn predictions_wrong.png tương ứng]
+## 6. THẢO LUẬN
+### 6.1. Chất lượng phân loại
+CNN có test accuracy và macro-F1 cao hơn trong cấu hình đã thử. Lợi thế này phù hợp với khả năng khai thác cấu trúc không gian ảnh. Đây là kết luận cho thực nghiệm hiện tại, không phải khẳng định mọi CNN luôn vượt mọi MLP.
 
-Ảnh minh họa giúp kiểm tra trực quan nhãn dự đoán và nhãn thực tế, bổ sung cho các chỉ số tổng hợp.
+### 6.2. Chi phí tính toán
+MLP huấn luyện trong 21,88 giây và có latency 0,0673 ms/ảnh; CNN tương ứng 201,26 giây và 0,2684 ms/ảnh. CNN chậm hơn trong lần đo này dù số tham số chỉ chênh lệch nhỏ. Số tham số không phản ánh toàn bộ số phép toán; convolution và điều kiện thiết bị cũng ảnh hưởng thời gian.
 
-## 7. THẢO LUẬN
+### 6.3. Hạn chế
+Thực nghiệm dùng một seed và một cấu hình chính cho mỗi kiến trúc. Thời gian đo thay đổi theo CPU/GPU, tải hệ thống, batch size và warm-up. Để so sánh chắc chắn hơn, nên chạy nhiều seed, giữ cùng điều kiện phần cứng và báo cáo trung bình cùng độ lệch chuẩn.
 
-### 7.1. So sánh chất lượng phân loại
-Dựa trên test accuracy và macro-F1 thực tế, xác định mô hình có hiệu quả cao hơn. Không nên chỉ dựa vào accuracy vì macro-F1 phản ánh hiệu suất trung bình trên từng lớp.
-
-### 7.2. So sánh chi phí tính toán
-Đối chiếu thời gian huấn luyện, inference latency và số lượng tham số. MLP thường có cấu trúc đơn giản; CNN có thêm phép tích chập nhưng có khả năng tận dụng cấu trúc không gian của ảnh.
-
-### 7.3. Phân tích lỗi
-Dùng confusion matrix và ảnh dự đoán sai để nhận diện các cặp lớp thường bị nhầm. Những lớp có hình dáng tương tự có thể khó phân biệt ở độ phân giải 28×28.
+## 7. DATA AUDIT
+Đề xuất thực hiện audit kỹ thuật nhẹ trước khi huấn luyện: xác nhận số lượng 60.000 ảnh train gốc và 10.000 ảnh test; ảnh grayscale 28×28; kiểu uint8 và miền pixel 0–255; nhãn 0–9; chia 50.000 train/10.000 validation với seed 42 và không giao nhau; đủ 10 lớp trong từng split; mean/std chuẩn hóa chỉ tính từ train split. Script nằm tại `src/data_audit.py`, hướng dẫn ở `docs/data_audit.md`. Cần chạy `python -m src.data_audit` trên môi trường thực tế trước khi đánh dấu PASS. Việc thêm script không đồng nghĩa audit đã được thực thi.
 
 ## 8. KẾT LUẬN
-Bài thực hành đã xây dựng pipeline PyTorch cho bài toán phân loại FashionMNIST, bao gồm tải dữ liệu, tiền xử lý, DataLoader, xây dựng mô hình, training loop, validation, lưu/nạp checkpoint và đánh giá. Hai kiến trúc được khảo sát là MLP và CNN.
+Bài thực hành đã triển khai pipeline phân loại FashionMNIST bằng PyTorch: tải dữ liệu, transforms, Dataset/DataLoader, xây dựng mô hình, forward, CrossEntropyLoss, backpropagation, Adam, validation, lưu/nạp checkpoint và đánh giá test. Trong kết quả hiện có, CNN đạt test accuracy 91,30% và macro-F1 91,32%, cao hơn MLP lần lượt 88,65% và 88,62%. CNN phù hợp hơn về chất lượng phân loại trong cấu hình thực nghiệm, trong khi MLP có lợi thế về thời gian huấn luyện và độ trễ suy luận.
 
-Kết luận cuối cùng về mô hình tốt hơn cần được bổ sung sau khi hoàn thành các lần chạy thực nghiệm và điền số liệu ở Chương 6. Qua bài thực hành, người học có thể hiểu rõ hơn sự khác biệt giữa mạng fully connected và convolutional network khi xử lý ảnh.
-
-## 9. HẠN CHẾ VÀ HƯỚNG PHÁT TRIỂN
-- FashionMNIST có độ phân giải thấp, hạn chế chi tiết hình ảnh.
-- Chưa khảo sát nhiều cấu hình kiến trúc và learning rate.
-- Có thể bổ sung data augmentation, scheduler và thử nghiệm nhiều seed.
-- Có thể đánh giá thêm precision/recall từng lớp và thời gian suy luận trên CPU/GPU.
+## 9. HƯỚNG PHÁT TRIỂN
+- Thử nhiều learning rate, batch size và cấu hình hidden/channel.
+- Áp dụng data augmentation và learning-rate scheduler.
+- Chạy nhiều seed để đánh giá độ ổn định.
+- Đo latency riêng trên CPU/GPU sau warm-up.
+- Phân tích sâu confusion matrix và các ảnh dự đoán sai.
 
 ## 10. TÀI LIỆU THAM KHẢO
-1. Fashion-MNIST dataset: https://github.com/zalandoresearch/fashion-mnist
-2. PyTorch Tutorials: https://pytorch.org/tutorials/
-3. PyTorch Neural Network API: https://pytorch.org/docs/stable/nn.html
-4. PyTorch Data Loading: https://pytorch.org/docs/stable/data.html
+1. https://github.com/zalandoresearch/fashion-mnist
+2. https://pytorch.org/tutorials/
+3. https://pytorch.org/docs/stable/nn.html
+4. https://pytorch.org/docs/stable/data.html
