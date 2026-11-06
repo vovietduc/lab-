@@ -3,108 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Báo cáo thực hành Chapter 2: phân loại FashionMNIST bằng MLP và CNN với PyTorch.">
-<title>FashionMNIST — MLP vs CNN | Báo cáo thực hành</title>
+<meta name="description" content="Practice 1 Chapter 2: FashionMNIST bằng PyTorch, tập trung vào thử nghiệm kiến trúc, trực quan hóa loss và predicted versus actual images.">
+<title>FashionMNIST – Chapter 2 Practice 1</title>
 <style>
 :root{--ink:#172033;--muted:#64748b;--line:#e2e8f0;--paper:#fff;--bg:#f3f6fb;--blue:#2457a6;--teal:#0f766e;--soft:#edf4ff;--shadow:0 12px 36px rgba(15,23,42,.07)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.72 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.72 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:1120px;margin:auto;padding:32px 22px 70px}
-.hero{background:linear-gradient(130deg,#102344,#1e4f86 58%,#167c80);color:#fff;border-radius:24px;padding:48px clamp(24px,5vw,60px);box-shadow:var(--shadow)}
-.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.76rem;font-weight:700;color:#b9d9ff}.hero h1{font-size:clamp(2rem,5vw,3.7rem);line-height:1.12;margin:16px 0}.hero p{max-width:760px;color:#e2edfb;font-size:1.05rem}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.meta span{border:1px solid #ffffff45;border-radius:999px;padding:5px 12px;font-size:.83rem}
+.hero{background:linear-gradient(130deg,#102344,#1e4f86 58%,#167c80);color:#fff;border-radius:24px;padding:46px clamp(24px,5vw,60px);box-shadow:var(--shadow)}
+.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.76rem;font-weight:700;color:#b9d9ff}.hero h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;margin:16px 0}.hero p{max-width:780px;color:#e2edfb;font-size:1.05rem}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.meta span{border:1px solid #ffffff45;border-radius:999px;padding:5px 12px;font-size:.83rem}
 .layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:26px;margin-top:26px}.toc{position:sticky;top:18px;align-self:start;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;padding:5px 0;color:#475569;font-size:.9rem}.content{min-width:0}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,34px);margin-bottom:20px;box-shadow:var(--shadow)}h2{font-size:1.55rem;margin:0 0 16px;line-height:1.3}h3{font-size:1.1rem;margin:24px 0 8px}p{margin:10px 0}ul,ol{padding-left:22px}li{margin:5px 0}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.kpi{background:#f7f9fc;border:1px solid var(--line);border-radius:14px;padding:16px}.kpi small{display:block;color:var(--muted);font-size:.78rem}.kpi b{font-size:1.7rem;letter-spacing:-.04em}.kpi em{display:block;font-style:normal;color:var(--muted);font-size:.8rem}
-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}th{background:#f5f8fc;font-weight:700}td:last-child,th:last-child{text-align:right}tr:last-child td{border-bottom:0}
-.callout{border-left:4px solid var(--blue);background:var(--soft);padding:14px 18px;border-radius:8px;margin:16px 0}.good{border-left-color:var(--teal)}.chart{width:100%;height:auto;border:1px solid var(--line);border-radius:12px;margin:10px 0 20px;background:#fff}.matrix{width:100%;height:auto;border:1px solid var(--line);border-radius:12px;margin:10px 0}.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.small{color:var(--muted);font-size:.88rem}.tag{display:inline-block;background:#e7f4ef;color:#116149;border-radius:999px;padding:3px 10px;font-weight:700;font-size:.82rem}.footer{color:var(--muted);text-align:center;padding:24px;font-size:.85rem}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.toc{position:static;display:grid;grid-template-columns:repeat(2,1fr);gap:0 14px}.toc strong{grid-column:1/-1}.kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.wrap{padding:14px 12px 40px}.hero{padding:30px 22px;border-radius:18px}.two{grid-template-columns:1fr}.kpis{gap:8px}.kpi b{font-size:1.45rem}table{font-size:.82rem}th,td{padding:8px 7px}}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.kpi{background:#f7f9fc;border:1px solid var(--line);border-radius:14px;padding:16px}.kpi small{display:block;color:var(--muted);font-size:.78rem}.kpi b{font-size:1.35rem;letter-spacing:-.03em}.kpi em{display:block;font-style:normal;color:var(--muted);font-size:.8rem}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.93rem}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}th{background:#f5f8fc;font-weight:700}tr:last-child td{border-bottom:0}
+.callout{border-left:4px solid var(--blue);background:var(--soft);padding:14px 18px;border-radius:8px;margin:16px 0}.good{border-left-color:var(--teal)}.figure{margin:18px 0 26px}.figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff}.figure figcaption{font-size:.88rem;color:var(--muted);margin-top:8px}.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.small{color:var(--muted);font-size:.88rem}.footer{color:var(--muted);text-align:center;padding:24px;font-size:.85rem}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.toc{position:static;display:grid;grid-template-columns:repeat(2,1fr);gap:0 14px}.toc strong{grid-column:1/-1}.kpis{grid-template-columns:1fr}}@media(max-width:560px){.wrap{padding:14px 12px 40px}.hero{padding:30px 22px;border-radius:18px}.two{grid-template-columns:1fr}table{font-size:.82rem}th,td{padding:8px 7px}}
 @media print{body{background:#fff}.wrap{max-width:none;padding:0}.hero,.card,.toc{box-shadow:none}.layout{display:block}.toc{display:none}.card{break-inside:avoid}.hero{border-radius:0}}
 </style>
 </head>
-<body>
-<div class="wrap">
+<body><div class="wrap">
 <header class="hero">
 <div class="eyebrow">Artificial Neural Networks · Chapter 2 · Practice 1</div>
-<h1>FashionMNIST<br>Image Classification</h1>
-<p>Báo cáo thực nghiệm và phân tích so sánh hai kiến trúc Multi-Layer Perceptron (MLP) và Convolutional Neural Network (CNN) được triển khai bằng PyTorch.</p>
-<div class="meta"><span>Python · PyTorch</span><span>70.000 ảnh</span><span>10 lớp</span><span>MLP vs CNN</span></div>
+<h1>FashionMNIST<br>Image Classification with PyTorch</h1>
+<p>Bài thực hành tập trung vào ba nhiệm vụ: thử nghiệm cấu trúc mạng/hyperparameters, trực quan hóa loss và hiển thị ảnh dự đoán so với nhãn thực tế. MLP và CNN là hai cấu trúc được dùng cho thí nghiệm kiến trúc.</p>
+<div class="meta"><span>Python · PyTorch</span><span>70.000 ảnh</span><span>10 lớp</span><span>3 nhiệm vụ trọng tâm</span></div>
 </header>
 <div class="layout">
-<nav class="toc"><strong>Nội dung báo cáo</strong>
-<a href="#summary">Tóm tắt</a><a href="#dataset">Dữ liệu & EDA</a><a href="#models">Mô hình</a><a href="#results">Kết quả</a><a href="#curves">Training curves</a><a href="#classes">F1 theo lớp</a><a href="#cm">Confusion Matrix</a><a href="#audit">Data Audit</a><a href="#conclusion">Kết luận</a>
+<nav class="toc"><strong>Nội dung</strong>
+<a href="#tasks">Ba nhiệm vụ</a><a href="#data">Dữ liệu</a><a href="#experiment">Task 1 – Experiment</a><a href="#loss">Task 2 – Loss</a><a href="#prediction">Task 3 – Predictions</a><a href="#pipeline">PyTorch pipeline</a><a href="#evaluation">Đánh giá bổ sung</a><a href="#conclusion">Kết luận</a>
 </nav>
 <main class="content">
-<section class="card" id="summary"><h2>Tóm tắt kết quả</h2>
-<p>Thực nghiệm xây dựng pipeline phân loại FashionMNIST gồm khảo sát dữ liệu, tiền xử lý, chia tập, huấn luyện, validation, lưu checkpoint và đánh giá trên test set. CNN đạt chất lượng phân loại cao hơn MLP trong cấu hình đã thử; MLP có chi phí thời gian thấp hơn trong lần đo hiện tại.</p>
+<section class="card" id="tasks"><h2>Mục tiêu và checklist bài lab</h2>
+<p>Đề bài yêu cầu hoàn thành ba nhiệm vụ cụ thể. Vì vậy báo cáo được tổ chức theo ba Task này; phần MLP/CNN chỉ là nội dung hỗ trợ cho thí nghiệm kiến trúc.</p>
 <div class="kpis">
-<div class="kpi"><small>MLP · Test accuracy</small><b>88,34%</b><em>Macro-F1 88,35%</em></div>
-<div class="kpi"><small>CNN · Test accuracy</small><b>92,20%</b><em>Macro-F1 92,15%</em></div>
-<div class="kpi"><small>CNN accuracy gain</small><b>+3,86</b><em>điểm phần trăm</em></div>
-<div class="kpi"><small>Data audit</small><b>12/12</b><em>checks PASS</em></div>
+<div class="kpi"><small>Task 1</small><b>Network experiment</b><em>Thay đổi cấu trúc mạng</em></div>
+<div class="kpi"><small>Task 2</small><b>Visualize loss</b><em>Train Loss và Validation Loss</em></div>
+<div class="kpi"><small>Task 3</small><b>Predicted vs Actual</b><em>Ảnh, nhãn dự đoán, nhãn thật</em></div>
 </div>
-<div class="callout good"><b>Kết luận nhanh:</b> CNN dự đoán đúng 9.220/10.000 ảnh, so với 8.834/10.000 ảnh của MLP. Shirt vẫn là lớp khó nhất ở cả hai mô hình.</div>
+<table><thead><tr><th>Yêu cầu</th><th>Minh chứng trong project</th></tr></thead><tbody>
+<tr><td>Thử nghiệm cấu trúc mạng hoặc hyperparameters</td><td><code>configs/mlp.yaml</code>, <code>configs/cnn.yaml</code>, <code>src/model.py</code></td></tr>
+<tr><td>Trực quan hóa loss</td><td><code>history.json</code>, <code>training_curves.png</code></td></tr>
+<tr><td>So sánh predicted với actual images</td><td><code>predictions_random.png</code>, <code>predictions_wrong.png</code></td></tr>
+</tbody></table>
+<div class="callout good"><b>Định hướng:</b> Không xem MLP vs CNN là mục tiêu cuối cùng. Hai mô hình chỉ là hai kiến trúc để thực hiện Task 1; Task 2 và Task 3 là các minh chứng bắt buộc phải quan sát được.</div>
 </section>
-<section class="card" id="dataset"><h2>1. Dataset và EDA</h2>
-<p>FashionMNIST gồm 70.000 ảnh grayscale 28×28, thuộc 10 lớp. Dữ liệu train gốc có 60.000 ảnh (6.000 ảnh mỗi lớp); test có 10.000 ảnh (1.000 ảnh mỗi lớp).</p>
-<table><thead><tr><th>Split</th><th>Số ảnh</th><th>Mục đích</th></tr></thead><tbody><tr><td>Train</td><td>50.000</td><td>Cập nhật trọng số</td></tr><tr><td>Validation</td><td>10.000</td><td>Chọn checkpoint</td></tr><tr><td>Test</td><td>10.000</td><td>Đánh giá cuối cùng</td></tr></tbody></table>
-<h3>EDA và cleaning</h3>
-<ul><li>Ảnh 28×28, grayscale, dtype uint8, pixel [0,255].</li><li>Ảnh trống trong train: <b>0</b>.</li><li>Ảnh trùng lặp chính xác trong train: <b>0</b>.</li><li>Ảnh train trùng chính xác với test: <b>0</b>.</li><li>Mean pixel trên train thô: khoảng 0,2860; std khoảng 0,3530; pixel bằng 0 chiếm 50,21%.</li><li>PCA trên mẫu 6.000 ảnh: 50 components giữ khoảng 86,3% phương sai.</li></ul>
-<h3>Độ tương đồng ảnh trung bình giữa các lớp</h3>
-<table><thead><tr><th>Cặp lớp</th><th>Khoảng cách Euclid</th></tr></thead><tbody><tr><td>Pullover – Coat</td><td>2,48</td></tr><tr><td>Pullover – Shirt</td><td>2,68</td></tr><tr><td>Coat – Shirt</td><td>3,02</td></tr><tr><td>T-shirt/top – Shirt</td><td>3,72</td></tr><tr><td>Sandal – Sneaker</td><td>3,84</td></tr></tbody></table>
-<p class="small">Khoảng cách ảnh trung bình là chỉ báo khám phá dữ liệu, không phải phép đo trực tiếp xác suất nhầm lẫn.</p>
-<h3>Tiền xử lý</h3>
-<p>Train/validation được chia với seed 42. Mean = 0,2858626 và std = 0,3529320 được tính chỉ từ training split. Ảnh chuẩn hóa theo x_norm = (x − mean_train) / std_train. CNN nhận tensor (B,1,28,28); MLP nhận vector 784 chiều sau Flatten.</p>
+<section class="card" id="data"><h2>1. Dữ liệu FashionMNIST</h2>
+<p>FashionMNIST gồm 70.000 ảnh grayscale 28×28 thuộc 10 lớp. 60.000 ảnh train gốc được chia thành 50.000 train và 10.000 validation; 10.000 ảnh test được giữ riêng.</p>
+<table><thead><tr><th>Split</th><th>Số ảnh</th><th>Mục đích</th></tr></thead><tbody><tr><td>Train</td><td>50.000</td><td>Cập nhật trọng số</td></tr><tr><td>Validation</td><td>10.000</td><td>Theo dõi, chọn checkpoint</td></tr><tr><td>Test</td><td>10.000</td><td>Đánh giá cuối cùng</td></tr></tbody></table>
+<p>Ảnh được chuyển về [0,1] và chuẩn hóa bằng mean 0,2858626, std 0,3529320 tính từ training split. Notebook thực hiện EDA, kiểm tra nhãn, ảnh trống, trùng lặp, phân phối lớp, thống kê pixel và PCA.</p>
 </section>
-<section class="card" id="models"><h2>2. Thiết kế mô hình</h2>
-<div class="two"><div><h3>MLP</h3><p>Flatten → Linear(784,256) → ReLU → Dropout(0,2) → Linear(256,128) → ReLU → Dropout(0,2) → Linear(128,10).</p><p><b>235.146</b> tham số.</p><p class="small">Baseline fully connected; không giữ cấu trúc không gian sau Flatten.</p></div><div><h3>CNN</h3><p>Conv 1→32→64→128, BatchNorm, ReLU, MaxPooling, Adaptive Average Pooling 3×3, classifier 1152→128→10.</p><p><b>241.994</b> tham số.</p><p class="small">Khai thác đặc trưng cục bộ và quan hệ không gian của ảnh.</p></div></div>
-<h3>Thiết lập huấn luyện</h3>
-<table><thead><tr><th>Tham số</th><th>Giá trị</th></tr></thead><tbody><tr><td>Seed</td><td>42</td></tr><tr><td>Batch size</td><td>128</td></tr><tr><td>Epoch tối đa</td><td>15</td></tr><tr><td>Optimizer / Learning rate</td><td>Adam / 0,001</td></tr><tr><td>Loss</td><td>CrossEntropyLoss</td></tr><tr><td>Weight decay</td><td>0,0001</td></tr><tr><td>Early stopping patience</td><td>4</td></tr></tbody></table>
-<p>Training loop thực hiện zero_grad → forward → loss → backward → optimizer.step. Checkpoint được chọn theo validation accuracy tốt nhất.</p>
-</section>
-<section class="card" id="results"><h2>3. Kết quả thực nghiệm</h2>
+<section class="card" id="experiment"><h2>2. Task 1 – Thử nghiệm cấu trúc mạng</h2>
+<p>Đề bài cho phép thử nghiệm cấu trúc mạng <b>hoặc</b> hyperparameters. Project chọn khảo sát hai cấu trúc MLP và CNN. Cùng dataset, seed, split, batch size, optimizer, learning rate và weight decay được sử dụng để việc quan sát tập trung vào khác biệt kiến trúc.</p>
+<table><thead><tr><th>Thiết lập</th><th>MLP</th><th>CNN</th></tr></thead><tbody>
+<tr><td>Input</td><td>Flatten 784</td><td>1×28×28</td></tr><tr><td>Kiến trúc</td><td>784→256→128→10</td><td>Conv 1→32→64→128; pooling; 1152→128→10</td></tr>
+<tr><td>Dropout</td><td>0,2</td><td>0,25</td></tr><tr><td>Parameters</td><td>235.146</td><td>241.994</td></tr>
+<tr><td>Optimizer</td><td>Adam</td><td>Adam</td></tr><tr><td>Learning rate</td><td>0,001</td><td>0,001</td></tr><tr><td>Batch size</td><td>128</td><td>128</td></tr><tr><td>Epoch tối đa</td><td>15</td><td>15</td></tr>
+</tbody></table>
+<p>MLP dùng các lớp fully connected trên vector ảnh đã Flatten. CNN dùng convolution để học đặc trưng cục bộ và bảo toàn cấu trúc không gian. Cấu hình nằm trong <code>configs/mlp.yaml</code> và <code>configs/cnn.yaml</code>.</p>
+<h3>Kết quả lần chạy local mới nhất được cung cấp</h3>
 <table><thead><tr><th>Chỉ số</th><th>MLP</th><th>CNN</th></tr></thead><tbody>
-<tr><td>Best validation accuracy</td><td>89,15%</td><td>92,25%</td></tr>
-<tr><td>Test accuracy</td><td>88,34%</td><td>92,20%</td></tr>
-<tr><td>Macro-F1</td><td>88,35%</td><td>92,15%</td></tr>
-<tr><td>Test loss</td><td>0,3276</td><td>0,2331</td></tr>
-<tr><td>Training time</td><td>15 s</td><td>250 s</td></tr>
-<tr><td>Inference latency</td><td>0,067 ms/ảnh</td><td>0,339 ms/ảnh</td></tr>
-<tr><td>Parameters</td><td>235.146</td><td>241.994</td></tr>
-<tr><td>Epoch thực chạy</td><td>15</td><td>12</td></tr>
+<tr><td>Best validation accuracy</td><td>89,15%</td><td>92,25%</td></tr><tr><td>Test accuracy</td><td>88,34%</td><td>92,20%</td></tr><tr><td>Macro-F1</td><td>88,35%</td><td>92,15%</td></tr><tr><td>Test loss</td><td>0,3276</td><td>0,2331</td></tr><tr><td>Epoch thực chạy</td><td>15</td><td>15</td></tr>
 </tbody></table>
-<p>CNN cao hơn MLP 2,65 điểm phần trăm về accuracy và 2,71 điểm phần trăm về Macro-F1. MLP train nhanh hơn và latency thấp hơn trong lần đo này. Kết quả thời gian phụ thuộc phần cứng và điều kiện đo.</p>
+<div class="callout">CNN cao hơn 3,86 điểm phần trăm về test accuracy trong lần chạy này. Đây là quan sát trên hai cấu hình cụ thể, không phải kết luận CNN luôn tốt hơn mọi MLP.</div>
+<p class="small"><b>Đồng bộ kết quả:</b> JSON đang lưu trên GitHub cần được cập nhật từ lần chạy local mới nhất trước khi nộp. Hãy chạy train/evaluate và đồng bộ thư mục reports để các bảng, loss curves và ảnh dự đoán cùng một lần chạy.</p>
 </section>
-<section class="card" id="curves"><h2>4. Đường cong huấn luyện</h2>
-<p>Các biểu đồ được tạo từ history.json. MLP có 15 epoch cho cả hai mô hình; không nội suy thêm điểm.</p>
-<h3>Train Loss</h3><img class="chart" src="train_loss_comparison.svg" alt="Train loss MLP và CNN">
-<h3>Validation Loss</h3><img class="chart" src="validation_loss_comparison.svg" alt="Validation loss MLP và CNN">
-<h3>Train Accuracy</h3><img class="chart" src="train_accuracy_comparison.svg" alt="Train accuracy MLP và CNN">
-<h3>Validation Accuracy</h3><img class="chart" src="validation_accuracy_comparison.svg" alt="Validation accuracy MLP và CNN">
-<p>CNN đạt validation accuracy tốt nhất 92,25% tại epoch 8. Validation loss thấp nhất khoảng 0,2296 tại epoch 6. MLP đạt validation accuracy tốt nhất 89,15% tại epoch 15.</p>
-</section>
-<section class="card" id="classes"><h2>5. Phân tích theo lớp</h2>
-<table><thead><tr><th>Lớp</th><th>MLP F1</th><th>CNN F1</th></tr></thead><tbody>
-<tr><td>T-shirt/top</td><td>0,8387</td><td>0,8801</td></tr><tr><td>Trouser</td><td>0,9786</td><td>0,9890</td></tr><tr><td>Pullover</td><td>0,7978</td><td>0,8865</td></tr><tr><td>Dress</td><td>0,8892</td><td>0,9235</td></tr><tr><td>Coat</td><td>0,8047</td><td>0,8714</td></tr><tr><td>Sandal</td><td>0,9599</td><td>0,9800</td></tr><tr><td>Shirt</td><td>0,7017</td><td>0,7738</td></tr><tr><td>Sneaker</td><td>0,9402</td><td>0,9578</td></tr><tr><td>Bag</td><td>0,9701</td><td>0,9881</td></tr><tr><td>Ankle boot</td><td>0,9537</td><td>0,9645</td></tr>
-</tbody></table>
-<p>CNN có F1 cao hơn ở cả 10 lớp trong lần chạy mới; Shirt là lớp khó nhất ở cả hai mô hình.</p>
-</section>
-<section class="card" id="cm"><h2>6. Confusion Matrix và phân tích lỗi</h2>
-<p>Hàng là nhãn thực tế, cột là nhãn dự đoán. Đường chéo biểu diễn số dự đoán đúng.</p>
-<h3>MLP — 8.834/10.000 dự đoán đúng</h3><img class="matrix" src="../mlp/confusion_matrix.png" alt="Confusion matrix MLP">
-<p>Các nhầm lẫn lớn nhất: Shirt → T-shirt/top (156); Pullover → Shirt (87); Pullover → Coat (84); Coat → Pullover (83); Coat → Shirt (77).</p>
-<h3>CNN — 9.220/10.000 dự đoán đúng</h3><img class="matrix" src="../cnn/confusion_matrix.png" alt="Confusion matrix CNN">
-<p>Các nhầm lẫn lớn nhất: Coat → Shirt (95); T-shirt/top → Shirt (75); Pullover → Shirt (66); Coat → Pullover (63); Dress → Shirt (51).</p>
-<div class="callout"><b>So sánh:</b> CNN giảm số lỗi từ 1.166 xuống 780 ảnh theo accuracy mới. Các cặp nhầm lẫn chi tiết cần lấy từ confusion matrix mới. Pullover → Coat giảm 84→36; Shirt → T-shirt/top giảm 156→105; Pullover → Shirt giảm 87→66. Tuy nhiên Coat → Shirt tăng 77→95. CNN cải thiện tổng thể nhưng không cải thiện mọi cặp lớp.</div>
-</section>
-<section class="card" id="audit"><h2>7. Data Audit</h2><p><span class="tag">12/12 checks PASS</span></p>
-<ul><li>Số lượng train/test đúng.</li><li>Shape 28×28, grayscale, uint8, pixel [0,255].</li><li>Nhãn hợp lệ 0–9, đủ 10 lớp.</li><li>Train/validation không giao nhau; kích thước split đúng và bao phủ tập train gốc.</li><li>Đủ lớp trong từng split.</li><li>Mean/std hữu hạn, std dương; thống kê chỉ tính từ train split.</li></ul>
-<p>Notebook EDA kiểm tra bổ sung ảnh trống, trùng lặp train và trùng lặp chính xác train/test; kết quả lần lượt đều bằng 0. Ba kiểm tra cleaning này không thuộc 12 checks trong script audit.</p>
-</section>
-<section class="card" id="conclusion"><h2>8. Kết luận và hạn chế</h2>
-<p>Trong cấu hình hiện tại, CNN cho chất lượng phân loại tốt hơn MLP trên FashionMNIST. CNN đạt 92,20% test accuracy và 92,15% Macro-F1, còn MLP đạt 88,34% và 88,35%. MLP có lợi thế về thời gian huấn luyện và độ trễ suy luận. Confusion Matrix cho thấy các lỗi còn tập trung ở nhóm áo có hình dáng gần nhau, đặc biệt là Shirt.</p>
-<p>Thực nghiệm sử dụng một seed và một cấu hình chính cho mỗi kiến trúc; chưa báo cáo trung bình nhiều lần chạy. Thời gian train và latency phụ thuộc thiết bị. PCA được thực hiện trên mẫu 6.000 ảnh.</p>
-<h3>Tài liệu tham khảo</h3><ol><li><a href="https://github.com/zalandoresearch/fashion-mnist">Fashion-MNIST — Zalando Research</a></li><li><a href="https://pytorch.org/tutorials/">PyTorch Tutorials</a></li><li><a href="https://pytorch.org/docs/stable/nn.html">PyTorch Neural Network API</a></li><li><a href="https://scikit-learn.org/stable/modules/model_evaluation.html">Scikit-learn Model Evaluation</a></li></ol>
-</section>
-</main>
+<section class="card" id="loss"><h2>3. Task 2 – Trực quan hóa độ mất mát (Loss)</h2>
+<p>Trong mỗi epoch, chương trình ghi lại train loss và validation loss vào <code>history.json</code>. Hàm <code>plot_history()</code> tạo biểu đồ <code>training_curves.png</code>. Quan sát hai đường loss giúp nhận biết mô hình có đang học và có dấu hiệu overfitting hay không.</p>
+<div class="two">
+<div><h3>MLP – Training curves</h3><figure class="figure"><img src="../mlp/training_curves.png" alt="MLP training loss and accuracy curves"><figcaption>Đường loss train/validation của MLP (kèm accuracy).</figcaption></figure></div>
+<div><h3>CNN – Training curves</h3><figure class="figure"><img src="../cnn/training_curves.png" alt="CNN training loss and accuracy curves"><figcaption>Đường loss train/validation của CNN (kèm accuracy).</figcaption></figure></div>
 </div>
-<div class="footer">FashionMNIST Classification · Chapter 2 · Practice 1 · MLP vs CNN</div>
-</div>
-</body></html>
+<ul><li>Train loss giảm: mô hình đang khớp dần với dữ liệu train.</li><li>Validation loss tăng trong khi train loss giảm kéo dài: có thể xuất hiện overfitting.</li><li>Đọc xu hướng qua nhiều epoch, không kết luận chỉ từ một điểm.</li></ul>
+</section>
+<section class="card" id="prediction"><h2>4. Task 3 – Predicted vs Actual Images</h2>
+<p>Chương trình hiển thị ảnh test cùng hai thông tin: nhãn mô hình dự đoán và nhãn thực tế. Tiêu đề mỗi ảnh có dạng <b>Predicted (Actual)</b>. Màu xanh là dự đoán đúng, màu đỏ là dự đoán sai.</p>
+<h3>Ảnh test ngẫu nhiên</h3><figure class="figure"><img src="../cnn/predictions_random.png" alt="Random FashionMNIST predictions with predicted and actual labels"><figcaption>Mỗi ảnh thể hiện nhãn dự đoán ở dòng đầu và nhãn thực tế trong ngoặc.</figcaption></figure>
+<h3>Các ảnh dự đoán sai</h3><figure class="figure"><img src="../cnn/predictions_wrong.png" alt="Misclassified FashionMNIST test images"><figcaption>Các trường hợp mô hình dự đoán khác nhãn thực tế, giúp phân tích lỗi.</figcaption></figure>
+<p>Các hình được sinh bởi <code>show_predictions()</code> trong <code>src/utils.py</code> và lưu bởi <code>src/evaluate.py</code>. Ảnh tương ứng của MLP nằm trong <code>reports/mlp/</code>.</p>
+</section>
+<section class="card" id="pipeline"><h2>5. Quy trình PyTorch được triển khai</h2>
+<ol><li><b>Tensor, Dataset, DataLoader:</b> biểu diễn ảnh/nhãn và nạp theo mini-batch.</li><li><b>Transforms:</b> chuyển ảnh thành tensor và chuẩn hóa.</li><li><b>Model building:</b> xây dựng mạng bằng <code>torch.nn.Module</code>.</li><li><b>Autograd:</b> <code>loss.backward()</code> tính gradient tự động.</li><li><b>Optimization:</b> Adam cập nhật trọng số qua <code>optimizer.step()</code>.</li><li><b>Save/load:</b> lưu checkpoint tốt nhất theo validation và nạp lại khi đánh giá.</li></ol>
+<p>Training loop: <code>zero_grad → forward → loss → backward → optimizer.step</code>. Test set chỉ được dùng cho đánh giá cuối cùng.</p>
+</section>
+<section class="card" id="evaluation"><h2>6. Đánh giá bổ sung</h2>
+<p>Accuracy, Precision, Recall, Macro-F1 và Confusion Matrix được dùng để đánh giá thêm chất lượng phân loại trên 10 lớp. Đây là nội dung hỗ trợ, không thay thế ba nhiệm vụ chính.</p>
+<table><thead><tr><th>Chỉ số</th><th>MLP</th><th>CNN</th></tr></thead><tbody><tr><td>Test accuracy</td><td>88,34%</td><td>92,20%</td></tr><tr><td>Macro-F1</td><td>88,35%</td><td>92,15%</td></tr></tbody></table>
+<figure class="figure"><img src="../cnn/confusion_matrix.png" alt="CNN confusion matrix"><figcaption>Confusion Matrix của CNN trên test set.</figcaption></figure>
+</section>
+<section class="card" id="conclusion"><h2>7. Kết luận theo đúng ba Task</h2>
+<ul><li><b>Task 1 – Thử nghiệm:</b> đã triển khai hai cấu trúc MLP/CNN với cấu hình riêng và điều kiện dữ liệu/huấn luyện cơ bản được giữ thống nhất.</li><li><b>Task 2 – Visualize Loss:</b> lưu loss theo epoch và trực quan hóa train loss cùng validation loss.</li><li><b>Task 3 – Predicted vs Actual:</b> tạo ảnh dự đoán ngẫu nhiên và ảnh dự đoán sai, thể hiện rõ nhãn dự đoán và nhãn thực tế.</li></ul>
+<p>Vì vậy, trọng tâm bài lab là thực hành xây dựng, huấn luyện, theo dõi loss và kiểm tra dự đoán bằng PyTorch. So sánh MLP/CNN chỉ là một phần của thí nghiệm cấu trúc mạng.</p>
+<h3>Tài liệu tham khảo</h3><ol><li><a href="https://github.com/zalandoresearch/fashion-mnist">Fashion-MNIST – Zalando Research</a></li><li><a href="https://pytorch.org/tutorials/">PyTorch Tutorials</a></li><li><a href="https://pytorch.org/docs/stable/nn.html">PyTorch torch.nn</a></li><li><a href="https://pytorch.org/docs/stable/data.html">PyTorch Data Loading</a></li></ol>
+</section>
+</main></div><div class="footer">Chapter 2 · Practice 1 · FashionMNIST with PyTorch</div></div></body></html>
