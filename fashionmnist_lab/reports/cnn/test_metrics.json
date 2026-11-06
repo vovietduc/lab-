@@ -1,9 +1,9 @@
 {
   "model": "cnn",
-  "test_accuracy": 0.913,
-  "test_macro_f1": 0.9132433094439731,
-  "test_loss": 0.24733633422851561,
-  "latency_ms_per_image": 0.26844199979677796,
+  "test_accuracy": 0.922,
+  "test_macro_f1": 0.9214721909207573,
+  "test_loss": 0.23306779823303223,
+  "latency_ms_per_image": 0.3385060001164675,
   "peak_vram_mb_eval": null,
   "params_total": 241994,
   "params_trainable": 241994

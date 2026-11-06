@@ -1,9 +1,9 @@
 {
   "model": "mlp",
-  "test_accuracy": 0.8865,
-  "test_macro_f1": 0.8861926287546327,
-  "test_loss": 0.3227415798187256,
-  "latency_ms_per_image": 0.06729000015184283,
+  "test_accuracy": 0.8834,
+  "test_macro_f1": 0.883473858053778,
+  "test_loss": 0.32757196655273435,
+  "latency_ms_per_image": 0.06717600161209702,
   "peak_vram_mb_eval": null,
   "params_total": 235146,
   "params_trainable": 235146

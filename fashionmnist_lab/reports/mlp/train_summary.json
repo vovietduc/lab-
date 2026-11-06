@@ -1,6 +1,6 @@
 {
-  "best_val_acc": 0.8948,
-  "train_time_s": 21.875063180923462,
+  "best_val_acc": 0.8915,
+  "train_time_s": 15.213987588882446,
   "epochs_run": 15,
   "peak_vram_mb_train": null
 }
