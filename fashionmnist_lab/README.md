@@ -102,7 +102,7 @@ Kết quả cleaning đã lưu trong output notebook: 0 ảnh trống, 0 ảnh t
 
 Các cặp áo có hình dáng tương tự là nhóm đáng chú ý khi phân tích lỗi phân loại. Khoảng cách ảnh trung bình chỉ là tín hiệu khám phá dữ liệu, không phải bằng chứng trực tiếp rằng mô hình chắc chắn nhầm hai lớp.
 
-## 5. Kiến trúc mô hình
+## 5. Task 1 — Thử nghiệm cấu trúc mạng
 
 ### 5.1. MLP
 
@@ -398,3 +398,14 @@ Mỗi thư mục `reports/mlp/` và `reports/cnn/` lưu:
 ---
 
 **Báo cáo chi tiết:** `reports/final_report/report.md` và `reports/final_report/report.html`.
+
+
+## Đối chiếu ba Task của Practice 1
+
+| Task | Cách thực hiện | Minh chứng |
+|---|---|---|
+| Thử nghiệm cấu trúc mạng hoặc hyperparameters | MLP và CNN với cấu hình riêng, cùng dữ liệu và thiết lập huấn luyện cơ bản | `configs/mlp.yaml`, `configs/cnn.yaml`, `src/model.py` |
+| Visualize loss | Lưu train/validation loss từng epoch và vẽ đường cong | `reports/mlp/training_curves.png`, `reports/cnn/training_curves.png` |
+| Predicted vs actual images | Hiển thị ảnh test cùng nhãn dự đoán và nhãn thật; có ảnh đúng/sai | `reports/mlp/predictions_random.png`, `reports/cnn/predictions_random.png`, `predictions_wrong.png` |
+
+Notebook có các phần Task 1, Task 2 và Task 3 để trình bày trực tiếp ba yêu cầu. MLP/CNN chỉ là thí nghiệm kiến trúc, không phải trọng tâm duy nhất của bài lab.
