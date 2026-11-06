@@ -69,11 +69,22 @@ Hai mô hình dùng cùng seed, cách chia dữ liệu và test set. Checkpoint 
 
 CNN cao hơn MLP 2.65 điểm phần trăm về test accuracy và khoảng 2.71 điểm phần trăm về macro-F1. Test loss của CNN thấp hơn. Số tham số chênh lệch 6.848. Ngược lại, CNN mất nhiều thời gian huấn luyện và có latency cao hơn trong lần đo này.
 
-### 5.2. Đường cong huấn luyện
-![MLP training curves](../mlp/training_curves.png)
-![CNN training curves](../cnn/training_curves.png)
+### 5.2. Đường cong huấn luyện – so sánh trực tiếp
+Cả bốn biểu đồ dùng chung trục X từ epoch 1 đến 15 và cùng giới hạn trục Y giữa MLP và CNN trong từng chỉ số. MLP có 15 điểm dữ liệu; CNN có 12 điểm và đường CNN kết thúc đúng tại epoch 12. Không nội suy hoặc thêm điểm giả. Accuracy được biểu diễn theo phần trăm.
 
-Train loss nhìn chung giảm và train accuracy tăng ở cả hai mô hình. MLP đạt train accuracy cuối 90,97%, validation accuracy tốt nhất 89,48%. CNN đạt train accuracy cuối 94,47%, validation accuracy tốt nhất 92,05%. Validation loss CNN thấp nhất khoảng 0.2296 ở epoch 6 rồi dao động và tăng nhẹ về cuối; đây là dấu hiệu cần theo dõi overfitting. MLP cũng có dao động validation loss.
+**Train Loss**
+![Train Loss MLP vs CNN](train_loss_comparison.svg)
+
+**Validation Loss**
+![Validation Loss MLP vs CNN](validation_loss_comparison.svg)
+
+**Train Accuracy**
+![Train Accuracy MLP vs CNN](train_accuracy_comparison.svg)
+
+**Validation Accuracy**
+![Validation Accuracy MLP vs CNN](validation_accuracy_comparison.svg)
+
+Train loss giảm ở cả hai mô hình. Validation loss có dao động; CNN đạt giá trị thấp nhất khoảng 0.2296 tại epoch 6, sau đó tăng/dao động. Vì vậy cần theo dõi khoảng cách train-validation và lựa chọn checkpoint dựa trên validation thay vì mặc định lấy epoch cuối.
 
 ### 5.3. Phân tích theo từng lớp
 | Lớp | MLP F1 | CNN F1 | Nhận xét |
@@ -106,17 +117,20 @@ MLP huấn luyện trong 21,88 giây và có latency 0,0673 ms/ảnh; CNN tươn
 ### 6.3. Hạn chế
 Thực nghiệm dùng một seed và một cấu hình chính cho mỗi kiến trúc. Thời gian đo thay đổi theo CPU/GPU, tải hệ thống, batch size và warm-up. Để so sánh chắc chắn hơn, nên chạy nhiều seed, giữ cùng điều kiện phần cứng và báo cáo trung bình cùng độ lệch chuẩn.
 
-## 7. KẾT LUẬN
+## 7. DATA AUDIT
+Đề xuất thực hiện audit kỹ thuật nhẹ trước khi huấn luyện: xác nhận số lượng 60.000 ảnh train gốc và 10.000 ảnh test; ảnh grayscale 28×28; kiểu uint8 và miền pixel 0–255; nhãn 0–9; chia 50.000 train/10.000 validation với seed 42 và không giao nhau; đủ 10 lớp trong từng split; mean/std chuẩn hóa chỉ tính từ train split. Script nằm tại `src/data_audit.py`, hướng dẫn ở `docs/data_audit.md`. Cần chạy `python -m src.data_audit` trên môi trường thực tế trước khi đánh dấu PASS. Việc thêm script không đồng nghĩa audit đã được thực thi.
+
+## 8. KẾT LUẬN
 Bài thực hành đã triển khai pipeline phân loại FashionMNIST bằng PyTorch: tải dữ liệu, transforms, Dataset/DataLoader, xây dựng mô hình, forward, CrossEntropyLoss, backpropagation, Adam, validation, lưu/nạp checkpoint và đánh giá test. Trong kết quả hiện có, CNN đạt test accuracy 91,30% và macro-F1 91,32%, cao hơn MLP lần lượt 88,65% và 88,62%. CNN phù hợp hơn về chất lượng phân loại trong cấu hình thực nghiệm, trong khi MLP có lợi thế về thời gian huấn luyện và độ trễ suy luận.
 
-## 8. HƯỚNG PHÁT TRIỂN
+## 9. HƯỚNG PHÁT TRIỂN
 - Thử nhiều learning rate, batch size và cấu hình hidden/channel.
 - Áp dụng data augmentation và learning-rate scheduler.
 - Chạy nhiều seed để đánh giá độ ổn định.
 - Đo latency riêng trên CPU/GPU sau warm-up.
 - Phân tích sâu confusion matrix và các ảnh dự đoán sai.
 
-## 9. TÀI LIỆU THAM KHẢO
+## 10. TÀI LIỆU THAM KHẢO
 1. https://github.com/zalandoresearch/fashion-mnist
 2. https://pytorch.org/tutorials/
 3. https://pytorch.org/docs/stable/nn.html
