@@ -94,7 +94,7 @@ def fit(model, train_loader, val_loader, device, epochs=15, lr=1e-3, optimizer_n
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--config", default="configs/default.yaml")
+    ap.add_argument("--config", default="configs/cnn.yaml")
     ap.add_argument("--dry-run", action="store_true", help="1 epoch trên tập mẫu nhỏ (20-50 ảnh)")
     ap.add_argument("--epochs", type=int, default=None)
     args = ap.parse_args()
