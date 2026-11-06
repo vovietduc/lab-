@@ -1,140 +1,71 @@
 # BÁO CÁO THỰC HÀNH – CHAPTER 2
-## FASHIONMNIST IMAGE CLASSIFICATION: MLP VS CNN
+# PHÂN LOẠI FASHIONMNIST BẰNG PYTORCH
 
-**Học phần:** Artificial Neural Networks / Deep Learning  
-**Bài thực hành:** Practice 1 – PyTorch FashionMNIST Classification  
-**Công cụ:** Python, PyTorch, Torchvision, NumPy, Pandas, Matplotlib, Scikit-learn  
-**Dữ liệu:** FashionMNIST  
-**Phạm vi:** MLP và CNN; không đưa ResNet18 vào so sánh.
+**Học phần:** Artificial Neural Networks – Chapter 2  
+**Bài thực hành:** Practice 1 – FashionMNIST Classification  
+**Công cụ:** Python, PyTorch, Torchvision, NumPy, Pandas, Matplotlib, Scikit-learn
 
 ---
 
-## TÓM TẮT
+## TÓM TẮT VÀ ĐỐI CHIẾU YÊU CẦU
 
-Bài thực hành xây dựng pipeline phân loại ảnh FashionMNIST bằng PyTorch và so sánh hai kiến trúc MLP, CNN. Pipeline bao gồm khảo sát dữ liệu, tiền xử lý, chia train/validation/test, xây dựng mô hình, huấn luyện bằng backpropagation, chọn checkpoint theo validation accuracy và đánh giá trên test set.
+Mục tiêu của bài thực hành là triển khai quy trình phân loại ảnh FashionMNIST bằng PyTorch và hoàn thành ba nhiệm vụ được giao:
 
-Trong kết quả hiện có, MLP đạt test accuracy 88,34% và Macro-F1 88,35%; CNN đạt test accuracy 92,20% và Macro-F1 92,15%. CNN cao hơn 3,86 điểm phần trăm về accuracy và 3,80 điểm phần trăm về Macro-F1. CNN có chất lượng phân loại tốt hơn trong cấu hình thử nghiệm, trong khi MLP có thời gian huấn luyện và latency thấp hơn trong lần đo này.
+1. Thử nghiệm với cấu trúc mạng hoặc siêu tham số (hyperparameters).
+2. Trực quan hóa độ mất mát (visualize loss).
+3. Hiển thị và so sánh ảnh dự đoán với nhãn thực tế (predicted vs actual).
 
-## 1. GIỚI THIỆU
+MLP và CNN được sử dụng như **hai cấu trúc mạng trong thí nghiệm Task 1**. Việc so sánh hai kiến trúc chỉ nhằm quan sát ảnh hưởng của cách biểu diễn đầu vào và cấu trúc mạng; đây không phải mục tiêu duy nhất của bài lab.
 
-FashionMNIST là bài toán phân loại ảnh đa lớp gồm 10 nhóm quần áo và phụ kiện. Mục tiêu là thực hành quy trình học có giám sát bằng PyTorch, từ tải dữ liệu, tạo Tensor và DataLoader đến xây dựng mạng nơ-ron, tối ưu trọng số, đánh giá và lưu mô hình.
+| Task | Cách triển khai | Minh chứng |
+|---|---|---|
+| Task 1 – Network / hyperparameter experiment | Dùng cùng dataset, split, seed và thiết lập huấn luyện; thay đổi kiến trúc MLP ↔ CNN | `configs/mlp.yaml`, `configs/cnn.yaml`, `src/model.py`, kết quả validation/test |
+| Task 2 – Visualize loss | Ghi train loss và validation loss sau từng epoch | `reports/mlp/training_curves.png`, `reports/cnn/training_curves.png`, `history.json` |
+| Task 3 – Predicted vs actual | Vẽ ảnh test cùng nhãn dự đoán và nhãn thực tế; lưu ví dụ đúng và sai | `predictions_random.png`, `predictions_wrong.png` |
 
-Hai cách tiếp cận được khảo sát:
-- **MLP:** sử dụng các lớp fully connected trên vector ảnh đã Flatten.
-- **CNN:** sử dụng convolution để học đặc trưng không gian từ ảnh.
+## 1. BÀI TOÁN VÀ DỮ LIỆU
 
-## 2. CƠ SỞ LÝ THUYẾT
+FashionMNIST là bài toán phân loại ảnh đa lớp gồm 10 loại quần áo và phụ kiện. Mỗi ảnh grayscale có kích thước 28×28 pixel. Bộ dữ liệu gồm 60.000 ảnh train gốc và 10.000 ảnh test.
 
-### 2.1. MLP
-
-MLP gồm input layer, hidden layers và output layer. Ảnh 28×28 được Flatten thành vector 784 chiều. Kiến trúc sử dụng Linear(784,256) → ReLU → Dropout(0,2) → Linear(256,128) → ReLU → Dropout(0,2) → Linear(128,10).
-
-Ưu điểm là cấu trúc đơn giản, dễ triển khai và phù hợp làm baseline. Hạn chế là Flatten làm mất bố cục không gian hai chiều của ảnh.
-
-### 2.2. CNN
-
-CNN xử lý tensor ảnh 2D và dùng kernel convolution để học đặc trưng cục bộ. Mô hình có ba tầng convolution với 32, 64 và 128 kênh; kết hợp Batch Normalization, ReLU, Max Pooling, Adaptive Average Pooling và classifier 1152 → 128 → 10.
-
-CNN giữ được quan hệ không gian giữa pixel và chia sẻ trọng số trong kernel, nhờ đó phù hợp hơn với dữ liệu ảnh.
-
-### 2.3. Training loop và backpropagation
-
-Với mỗi mini-batch, mô hình thực hiện:
-1. Forward pass để tạo logits.
-2. CrossEntropyLoss để đo sai số giữa logits và nhãn.
-3. Backward pass bằng `loss.backward()` để tính gradient.
-4. Optimizer update bằng `optimizer.step()`.
-5. Xóa gradient cũ bằng `optimizer.zero_grad()`.
-
-Sau mỗi epoch, validation được sử dụng để theo dõi khả năng tổng quát hóa và chọn checkpoint. Test set chỉ được dùng cho đánh giá cuối cùng.
-
-## 3. DỮ LIỆU VÀ TIỀN XỬ LÝ
-
-FashionMNIST có 70.000 ảnh grayscale kích thước 28×28, gồm 60.000 ảnh train gốc và 10.000 ảnh test. Mỗi lớp có 6.000 ảnh train và 1.000 ảnh test.
-
-| Tập | Số ảnh | Mục đích |
+| Split | Số ảnh | Vai trò |
 |---|---:|---|
 | Train | 50.000 | Cập nhật trọng số |
-| Validation | 10.000 | Theo dõi, chọn checkpoint |
+| Validation | 10.000 | Theo dõi quá trình học và chọn checkpoint |
 | Test | 10.000 | Đánh giá cuối cùng |
 
-60.000 ảnh train gốc được chia train/validation bằng seed 42. Test set được giữ riêng. Pixel được chuyển về [0,1] và chuẩn hóa theo:
+60.000 ảnh train gốc được chia train/validation bằng seed 42. Test set được giữ riêng. Pixel được chuyển về [0,1] rồi chuẩn hóa theo công thức:
 
 `x_norm = (x - mean_train) / std_train`
 
-Mean/std chỉ được tính từ training split nhằm tránh data leakage. Thống kê audit là mean = 0,2858626 và std = 0,3529320. CNN nhận tensor (B,1,28,28); MLP Flatten thành vector 784 chiều.
+Mean = 0,2858626 và std = 0,3529320 được tính chỉ từ training split để tránh data leakage. Notebook thực hiện EDA, kiểm tra nhãn, ảnh trống, ảnh trùng lặp, phân phối lớp, thống kê pixel, ảnh trung bình và PCA.
 
-## 4. PHÂN TÍCH DỮ LIỆU (EDA)
+## 2. TASK 1 – THỬ NGHIỆM CẤU TRÚC MẠNG
 
-Notebook thực hiện khảo sát dữ liệu thô, cleaning, class distribution, trực quan ảnh, ảnh trung bình theo lớp, thống kê pixel, khoảng cách giữa ảnh trung bình các lớp và PCA.
+Đề bài yêu cầu thử nghiệm cấu trúc mạng **hoặc** hyperparameters. Trong bài này, lựa chọn chính là thử nghiệm hai cấu trúc mạng khác nhau, giữ các điều kiện dữ liệu và huấn luyện cơ bản giống nhau để quan sát ảnh hưởng của kiến trúc.
 
-### 4.1. Tổng quan và phân phối lớp
+### 2.1. Cấu hình thí nghiệm
 
-Dữ liệu gốc có 10 lớp cân bằng: mỗi lớp gồm 6.000 ảnh trong tập train và 1.000 ảnh trong tập test. Sau khi chia ngẫu nhiên train/validation với seed 42, số lượng từng lớp có dao động nhỏ giữa hai tập, nhưng cả 10 lớp đều xuất hiện trong từng split.
-
-### 4.2. Cleaning
-
-Kết quả đã lưu trong output notebook:
-- Ảnh trống trong train: **0**.
-- Ảnh trùng lặp chính xác trong train: **0**.
-- Ảnh train xuất hiện chính xác trong test: **0**.
-
-Kiểm tra trùng lặp sử dụng hash nội dung pixel. Kết quả này không loại trừ các ảnh gần giống về mặt ngữ nghĩa.
-
-### 4.3. Thống kê pixel
-
-Trên dữ liệu train thô sau khi đưa pixel về [0,1]:
-- Mean toàn bộ: khoảng 0,2860.
-- Standard deviation: khoảng 0,3530.
-- Tỷ lệ pixel bằng 0: khoảng 50,21%.
-
-Các giá trị pixel bằng 0 chiếm tỷ lệ lớn do nền ảnh tối. Điều này phản ánh đặc điểm ảnh grayscale của FashionMNIST.
-
-### 4.4. Độ tương đồng giữa các lớp
-
-Khoảng cách Euclid giữa ảnh trung bình của các lớp cho thấy một số cặp có hình dáng gần nhau:
-
-| Cặp lớp | Khoảng cách |
-|---|---:|
-| Pullover – Coat | 2,48 |
-| Pullover – Shirt | 2,68 |
-| Coat – Shirt | 3,02 |
-| T-shirt/top – Shirt | 3,72 |
-| Sandal – Sneaker | 3,84 |
-
-Các lớp trang phục phía trên có hình dạng tương đối tương đồng. Đây là một gợi ý để phân tích các trường hợp nhầm lẫn ở Confusion Matrix; khoảng cách ảnh trung bình không phải thước đo trực tiếp về độ khó phân loại.
-
-### 4.5. PCA
-
-PCA được thực hiện trên một mẫu ngẫu nhiên 6.000 ảnh. Với 50 thành phần chính, tỷ lệ phương sai được giữ lại khoảng **86,3%**. Kết quả giúp minh họa khả năng biểu diễn dữ liệu trong không gian chiều thấp; đây không phải bước thay thế đầu vào của hai mô hình cuối cùng.
-
-## 5. THIẾT KẾ VÀ THIẾT LẬP THỰC NGHIỆM
-
-| Đặc điểm | MLP | CNN |
+| Thành phần | MLP | CNN |
 |---|---|---|
-| Input | Flatten 784 chiều | Ảnh 1×28×28 |
-| Thành phần | Linear, ReLU, Dropout | Conv2D, BatchNorm, ReLU, Pooling |
-| Kiến trúc | 784→256→128→10 | Conv 1→32→64→128; GAP; 1152→128→10 |
+| Cách biểu diễn đầu vào | Flatten ảnh thành 784 giá trị | Giữ tensor 1×28×28 |
+| Cấu trúc chính | Linear 784→256→128→10 | Conv 1→32→64→128; pooling; classifier 1152→128→10 |
+| Dropout | 0,2 | 0,25 |
 | Số tham số | 235.146 | 241.994 |
+| Batch size | 128 | 128 |
+| Optimizer | Adam | Adam |
+| Learning rate | 0,001 | 0,001 |
+| Weight decay | 0,0001 | 0,0001 |
+| Epoch tối đa | 15 | 15 |
+| Loss | CrossEntropyLoss | CrossEntropyLoss |
 
-| Tham số huấn luyện | Giá trị |
-|---|---:|
-| Seed | 42 |
-| Batch size | 128 |
-| Epoch tối đa | 15 |
-| Optimizer | Adam |
-| Learning rate | 0,001 |
-| Loss | CrossEntropyLoss |
-| Weight decay | 0,0001 |
-| Early stopping patience | 4 |
-| MLP dropout | 0,2 |
-| CNN dropout | 0,25 |
+**Biến được khảo sát:** cấu trúc mạng (fully connected MLP và convolutional CNN).  
+**Các điều kiện được giữ cố định:** dataset, train/validation/test split, seed, batch size, optimizer, learning rate, weight decay và số epoch tối đa.
 
-Hai mô hình dùng cùng cách chia dữ liệu và test set. Checkpoint được chọn theo validation accuracy tốt nhất. MLP chạy 15 epoch; CNN dừng sau 15 epoch do không cải thiện validation accuracy trong 4 epoch liên tiếp.
+MLP dùng Flatten nên không giữ cấu trúc lân cận 2D của pixel. CNN dùng convolution để học đặc trưng cục bộ và giữ thông tin không gian. Hai cấu hình được lưu độc lập trong `configs/mlp.yaml` và `configs/cnn.yaml`; mô hình được định nghĩa trong `src/model.py`.
 
-## 6. KẾT QUẢ THỰC NGHIỆM
+### 2.2. Kết quả của thí nghiệm kiến trúc
 
-### 6.1. So sánh tổng thể
+Theo lần chạy mới nhất được thực hiện trên máy local:
 
 | Chỉ số | MLP | CNN |
 |---|---:|---:|
@@ -142,145 +73,95 @@ Hai mô hình dùng cùng cách chia dữ liệu và test set. Checkpoint đư�
 | Test accuracy | 88,34% | 92,20% |
 | Test Macro-F1 | 88,35% | 92,15% |
 | Test loss | 0,3276 | 0,2331 |
-| Training time | 15 s | 250 s |
-| Inference latency | 0,067 ms/ảnh | 0,339 ms/ảnh |
-| Parameters | 235.146 | 241.994 |
 | Epoch thực chạy | 15 | 15 |
 
-CNN cao hơn MLP 3,86 điểm phần trăm về test accuracy và 3,80 điểm phần trăm về Macro-F1. Test loss thấp hơn cho thấy dự đoán của CNN có chất lượng tốt hơn theo hàm mất mát đang sử dụng.
+CNN đạt accuracy cao hơn 3,86 điểm phần trăm trong lần chạy này. Đây là kết quả quan sát của hai cấu hình cụ thể, không phải kết luận rằng CNN luôn tốt hơn mọi MLP.
 
-MLP có thời gian train và latency thấp hơn trong lần đo hiện tại. Dù số tham số hai mô hình gần nhau, CNN có phép tích chập trên feature maps nên chi phí tính toán thực tế không thể suy ra chỉ từ số tham số.
+**Lưu ý đồng bộ:** các file JSON kết quả đang được lưu trên GitHub có thể chưa phải lần chạy local mới nhất. Trước khi nộp, chạy lại train/evaluate hoặc đồng bộ thư mục `reports/mlp` và `reports/cnn` từ máy local để bảo đảm bảng số liệu và hình ảnh cùng thuộc một lần chạy.
 
-### 6.2. Đường cong huấn luyện
+## 3. TASK 2 – TRỰC QUAN HÓA LOSS
 
-Bốn biểu đồ so sánh train loss, validation loss, train accuracy và validation accuracy được tạo từ `history.json` của từng mô hình. CNN có 15 epoch thực chạy, MLP có 15 epoch; không nội suy thêm điểm cho CNN.
+Trong mỗi epoch, chương trình ghi lại:
+- `train_loss`: loss trung bình trên tập train.
+- `val_loss`: loss trung bình trên tập validation.
 
-- Train loss giảm ở cả hai mô hình.
-- Validation loss có dao động trong quá trình huấn luyện.
-- CNN đạt validation loss thấp nhất khoảng 0,2296 tại epoch 6.
-- CNN đạt validation accuracy tốt nhất 92,25% tại epoch 8; checkpoint tốt nhất được khôi phục từ epoch này.
-- MLP đạt validation accuracy tốt nhất 89,15% tại epoch 15.
+Loss được tính bằng `CrossEntropyLoss`. Các giá trị được lưu trong `history.json`; hàm `plot_history()` tạo biểu đồ `training_curves.png`. Trục hoành là epoch, trục tung là loss. Hai đường train/validation giúp quan sát tốc độ học và khả năng tổng quát hóa.
 
-### 6.3. Phân tích theo từng lớp
+### 3.1. Đường cong loss của MLP
 
-| Lớp | MLP F1 | CNN F1 | Nhận xét |
-|---|---:|---:|---|
-| T-shirt/top | 0,8387 | 0,8801 | CNN tốt hơn |
-| Trouser | 0,9786 | 0,9890 | Cả hai tốt |
-| Pullover | 0,7978 | 0,8865 | CNN cải thiện rõ |
-| Dress | 0,8892 | 0,9235 | CNN tốt hơn |
-| Coat | 0,8047 | 0,8714 | CNN tốt hơn |
-| Sandal | 0,9599 | 0,9800 | CNN tốt hơn |
-| Shirt | 0,7017 | 0,7738 | Lớp khó nhất |
-| Sneaker | 0,9402 | 0,9578 | CNN tốt hơn |
-| Bag | 0,9701 | 0,9881 | MLP nhỉnh hơn |
-| Ankle boot | 0,9537 | 0,9645 | CNN tốt hơn |
+![MLP training curves](../mlp/training_curves.png)
 
-CNN đạt F1 cao hơn ở 9/10 lớp. Shirt là lớp có F1 thấp nhất ở cả hai mô hình; Bag là lớp duy nhất MLP nhỉnh hơn CNN.
+### 3.2. Đường cong loss của CNN
 
-## 7. CONFUSION MATRIX VÀ PHÂN TÍCH LỖI
+![CNN training curves](../cnn/training_curves.png)
 
-Confusion Matrix được tạo từ checkpoint hiện tại và 10.000 ảnh test. Hàng biểu diễn lớp thực tế, cột biểu diễn lớp dự đoán. Phần tử trên đường chéo là dự đoán đúng; phần tử ngoài đường chéo là số ảnh bị nhầm.
+### 3.3. Cách nhận xét biểu đồ
 
-### 7.1. MLP
+- Train loss giảm cho thấy mô hình đang học được từ dữ liệu huấn luyện.
+- Nếu train loss tiếp tục giảm nhưng validation loss tăng kéo dài, đó có thể là dấu hiệu overfitting.
+- Nếu cả hai loss còn cao và giảm chậm, mô hình có thể chưa học đủ hoặc cấu hình tối ưu chưa phù hợp.
+- Không chỉ nhìn một epoch; cần xem xu hướng của cả hai đường và checkpoint được chọn bằng validation.
 
-![MLP Confusion Matrix](../mlp/confusion_matrix.png)
+Biểu đồ accuracy có thể dùng làm thông tin bổ sung, nhưng minh chứng chính cho Task 2 là hai đường **Train Loss** và **Validation Loss**.
 
-MLP dự đoán đúng 8.834/10.000 ảnh, tương ứng 88,34%. Các cặp nhầm lẫn lớn nhất:
+## 4. TASK 3 – HIỂN THỊ PREDICTED VS ACTUAL IMAGES
 
-| Lớp thực tế | Dự đoán thành | Số ảnh |
-|---|---|---:|
-| Shirt | T-shirt/top | 156 |
-| Pullover | Shirt | 87 |
-| Pullover | Coat | 84 |
-| Coat | Pullover | 83 |
-| Coat | Shirt | 77 |
+Sau khi đánh giá checkpoint trên test set, chương trình lấy các ảnh test, dự đoán lớp bằng `argmax(logits)`, sau đó hiển thị:
+- Ảnh đầu vào.
+- Nhãn mô hình dự đoán.
+- Nhãn thực tế trong ngoặc.
+- Màu xanh biểu thị dự đoán đúng; màu đỏ biểu thị dự đoán sai.
 
-Các nhầm lẫn chủ yếu tập trung ở nhóm áo. Điều này phù hợp với EDA về khoảng cách ảnh trung bình giữa Pullover, Coat, Shirt và T-shirt/top.
+### 4.1. Ví dụ ảnh test và nhãn dự đoán/thực tế
 
-### 7.2. CNN
+![Random predicted versus actual images](../cnn/predictions_random.png)
 
-![CNN Confusion Matrix](../cnn/confusion_matrix.png)
+Trong hình, tiêu đề mỗi ảnh có dạng **Predicted (Actual)**. Ví dụ `Sneaker (Sneaker)` nghĩa là mô hình dự đoán Sneaker và nhãn thực tế cũng là Sneaker.
 
-CNN dự đoán đúng 9.220/10.000 ảnh, tương ứng 92,20%. Các cặp nhầm lẫn lớn nhất:
+### 4.2. Các trường hợp mô hình dự đoán sai
 
-| Lớp thực tế | Dự đoán thành | Số ảnh |
-|---|---|---:|
-| Coat | Shirt | 95 |
-| T-shirt/top | Shirt | 75 |
-| Pullover | Shirt | 66 |
-| Coat | Pullover | 63 |
-| Dress | Shirt | 51 |
+![Misclassified FashionMNIST images](../cnn/predictions_wrong.png)
 
-CNN giảm tổng số lỗi từ 1.166 xuống 780 ảnh. Một số cặp lỗi giảm rõ:
-- Pullover → Coat: 84 xuống 36 ảnh.
-- Shirt → T-shirt/top: 156 xuống 105 ảnh.
-- Pullover → Shirt: 87 xuống 66 ảnh.
+Hình này chỉ chứa các ảnh mà nhãn dự đoán khác nhãn thực tế. Quan sát các trường hợp này giúp nhận biết lớp nào dễ nhầm lẫn và vì sao những mặt hàng có hình dáng gần nhau có thể gây khó khăn cho mô hình.
 
-Tuy nhiên, Coat → Shirt tăng từ 77 lên 95 ảnh. CNN cải thiện chất lượng tổng thể nhưng không làm giảm mọi dạng nhầm lẫn.
+Các ảnh được tạo bởi `show_predictions()` trong `src/utils.py` và được lưu tự động bởi `src/evaluate.py`. Có thể xem thêm kết quả MLP tại `reports/mlp/predictions_random.png` và `reports/mlp/predictions_wrong.png`.
 
-### 7.3. Kết luận từ Confusion Matrix
+## 5. QUY TRÌNH TRIỂN KHAI PYTORCH
 
-Hai mô hình đều nhận diện tốt Trouser, Sandal và Bag. Các trường hợp nhầm lẫn tập trung nhiều hơn ở nhóm áo có hình dáng tương tự. CNN cải thiện rõ số ảnh nhận diện đúng của lớp Shirt: từ 682 lên 775 ảnh. Tuy vậy, Shirt vẫn là lớp khó nhất và tiếp tục gây nhầm lẫn với T-shirt/top, Pullover, Coat và Dress.
+Bài lab thực hành các thành phần chính của Chapter 2:
 
-## 8. DATA AUDIT
+1. **Tensor:** biểu diễn ảnh và nhãn dưới dạng tensor.
+2. **Dataset/DataLoader:** tải dữ liệu theo mini-batch.
+3. **Transforms:** chuyển ảnh thành tensor và chuẩn hóa.
+4. **Model building:** xây dựng MLP/CNN kế thừa `torch.nn.Module`.
+5. **Autograd:** tính gradient tự động qua `loss.backward()`.
+6. **Optimization:** cập nhật trọng số bằng Adam qua `optimizer.step()`.
+7. **Save/load:** lưu checkpoint tốt nhất và nạp lại để đánh giá/dự đoán.
 
-File audit đã lưu tại `reports/data_audit/audit_summary.json` và `audit_log.txt`, ghi nhận **12/12 checks PASS**.
+Training loop trong `src/train.py` thực hiện `zero_grad → forward → loss → backward → optimizer.step`. Sau mỗi epoch, validation được chạy để theo dõi mô hình và chọn checkpoint. Test set chỉ dùng cho đánh giá cuối cùng.
 
-Các nhóm kiểm tra:
-1. Số lượng 60.000 ảnh train gốc và 10.000 ảnh test.
-2. Shape ảnh 28×28.
-3. Grayscale, dtype uint8.
-4. Miền pixel [0,255].
-5. Nhãn hợp lệ [0,9].
-6. Đủ 10 lớp trong dữ liệu.
-7. Train và validation không giao nhau.
-8. Kích thước split chính xác.
-9. Train và validation bao phủ toàn bộ tập train gốc.
-10. Đủ 10 lớp trong từng split.
-11. Mean/std chuẩn hóa hữu hạn.
-12. Standard deviation dương.
+## 6. ĐÁNH GIÁ BỔ SUNG
 
-Mean = 0,2858626 và std = 0,3529320, được tính từ training split.
+Ngoài ba nhiệm vụ chính, project còn lưu Accuracy, Precision, Recall, Macro-F1 và Confusion Matrix. Các chỉ số này giúp đánh giá chất lượng phân loại trên 10 lớp; chúng là phần đánh giá bổ sung, không thay thế ba Task nêu trên.
 
-Ngoài 12 checks trên, notebook EDA đã kiểm tra ảnh trống, ảnh trùng lặp chính xác trong train và trùng lặp chính xác giữa train/test; kết quả ghi nhận 0 ở cả ba mục. Đây là các kiểm tra cleaning trong notebook, không thuộc 12 checks của script audit.
+- MLP: test accuracy 88,34%, Macro-F1 88,35%.
+- CNN: test accuracy 92,20%, Macro-F1 92,15%.
+- Lớp Shirt là một trong các lớp khó phân loại hơn trong lần chạy hiện tại.
 
-## 9. THẢO LUẬN VÀ HẠN CHẾ
+Confusion Matrix:
+![CNN confusion matrix](../cnn/confusion_matrix.png)
 
-### 9.1. Chất lượng phân loại
+## 7. KẾT LUẬN THEO ĐÚNG YÊU CẦU BÀI LAB
 
-CNN có test accuracy và Macro-F1 cao hơn trong cấu hình thực nghiệm. Lợi thế này phù hợp với khả năng khai thác đặc trưng không gian của convolution. Kết luận chỉ áp dụng cho cấu hình và lần chạy hiện tại, không khẳng định CNN luôn vượt mọi MLP.
+- **Task 1 – Thử nghiệm:** đã triển khai hai cấu trúc MLP và CNN với cấu hình tách biệt, giữ các điều kiện dữ liệu và huấn luyện cơ bản để khảo sát ảnh hưởng kiến trúc.
+- **Task 2 – Visualize Loss:** pipeline lưu loss theo epoch và tạo biểu đồ Train Loss/Validation Loss.
+- **Task 3 – Predicted vs Actual:** pipeline lưu ảnh dự đoán ngẫu nhiên và ảnh dự đoán sai, có hiển thị cả nhãn dự đoán lẫn nhãn thực tế.
 
-### 9.2. Chi phí tính toán
+Như vậy, trọng tâm bài thực hành là quy trình xây dựng, huấn luyện, quan sát loss và kiểm tra dự đoán bằng PyTorch. MLP/CNN là phương tiện thực hiện Task 1; phần so sánh chỉ đóng vai trò hỗ trợ giải thích kết quả.
 
-MLP train trong 15 giây và latency 0,067 ms/ảnh; CNN tương ứng 250 giây và 0,339 ms/ảnh. CNN chậm hơn trong lần đo này dù số tham số chỉ chênh lệch 6.848. Thời gian phụ thuộc thiết bị, tải hệ thống, batch size và điều kiện đo.
+## 8. TÀI LIỆU THAM KHẢO
 
-### 9.3. Hạn chế
-
-- Thực nghiệm dùng một seed và một cấu hình chính cho mỗi kiến trúc.
-- Chưa báo cáo trung bình và độ lệch chuẩn trên nhiều lần chạy.
-- Latency phụ thuộc môi trường và số lần warm-up.
-- PCA được thực hiện trên mẫu 6.000 ảnh để khảo sát, không phải toàn bộ dataset.
-- Các lớp trang phục tương tự vẫn gây nhầm lẫn.
-
-## 10. KẾT LUẬN
-
-Bài thực hành đã triển khai pipeline FashionMNIST bằng PyTorch: tải dữ liệu, EDA, tiền xử lý, Dataset/DataLoader, xây dựng MLP/CNN, forward, CrossEntropyLoss, backpropagation, Adam, validation, lưu/nạp checkpoint và đánh giá test.
-
-Trong kết quả hiện có, CNN đạt test accuracy 92,20% và Macro-F1 92,15%, cao hơn MLP lần lượt 88,34% và 88,35%. CNN phù hợp hơn về chất lượng phân loại trong cấu hình thử nghiệm; MLP có lợi thế về thời gian huấn luyện và độ trễ suy luận. Phân tích Confusion Matrix cho thấy các lỗi còn tập trung ở nhóm áo có hình dáng tương tự, đặc biệt là Shirt.
-
-## 11. HƯỚNG PHÁT TRIỂN
-
-- Thử nhiều seed và báo cáo trung bình ± độ lệch chuẩn.
-- Thử learning-rate scheduler và data augmentation.
-- Mở rộng phân tích các ảnh dự đoán sai.
-- Đo latency có kiểm soát trên CPU/GPU.
-- Thử điều chỉnh kiến trúc để cải thiện lớp Shirt.
-
-## 12. TÀI LIỆU THAM KHẢO
-
-1. https://github.com/zalandoresearch/fashion-mnist
-2. https://pytorch.org/tutorials/
-3. https://pytorch.org/docs/stable/nn.html
-4. https://pytorch.org/docs/stable/data.html
-5. https://scikit-learn.org/stable/modules/model_evaluation.html
+1. [Fashion-MNIST – Zalando Research](https://github.com/zalandoresearch/fashion-mnist)
+2. [PyTorch Tutorials](https://pytorch.org/tutorials/)
+3. [PyTorch torch.nn](https://pytorch.org/docs/stable/nn.html)
+4. [PyTorch Data Loading](https://pytorch.org/docs/stable/data.html)
