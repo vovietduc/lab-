@@ -1,0 +1,21 @@
+# Cấu hình mặc định: CNN thuần trên FashionMNIST
+seed: 42
+data:
+  root: ./data
+  val_size: 10000
+  batch_size: 128
+  num_workers: 0
+model:
+  name: cnn
+  dropout: 0.25
+  num_classes: 10
+train:
+  epochs: 15
+  lr: 0.001
+  optimizer: adam
+  weight_decay: 0.0001
+  patience: 4
+  amp: false
+output:
+  model_path: reports/cnn/fashion_mnist_cnn.pth
+  reports_dir: reports/cnn
