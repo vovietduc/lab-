@@ -408,4 +408,4 @@ Mỗi thư mục `reports/mlp/` và `reports/cnn/` lưu:
 | Visualize loss | Lưu train/validation loss từng epoch và vẽ đường cong | `reports/mlp/training_curves.png`, `reports/cnn/training_curves.png` |
 | Predicted vs actual images | Hiển thị ảnh test cùng nhãn dự đoán và nhãn thật; có ảnh đúng/sai | `reports/mlp/predictions_random.png`, `reports/cnn/predictions_random.png`, `predictions_wrong.png` |
 
-Notebook có các phần Task 1, Task 2 và Task 3 để trình bày trực tiếp ba yêu cầu. MLP/CNN chỉ là thí nghiệm kiến trúc, không phải trọng tâm duy nhất của bài lab.
+
