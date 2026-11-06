@@ -278,7 +278,7 @@ CNN có F1 cao hơn ở cả 10 lớp trong lần chạy này. Shirt là lớp c
 
 Confusion Matrix được tạo từ 10.000 ảnh test. **Hàng biểu diễn lớp thực tế, cột biểu diễn lớp dự đoán**.
 
-### 10.1. MLP
+### 11.1. MLP
 
 ![MLP confusion matrix](reports/mlp/confusion_matrix.png)
 
@@ -289,7 +289,7 @@ Confusion Matrix được tạo từ 10.000 ảnh test. **Hàng biểu diễn l�
 - Coat → Pullover (83 ảnh).
 - Coat → Shirt (77 ảnh).
 
-### 10.2. CNN
+### 11.2. CNN
 
 ![CNN confusion matrix](reports/cnn/confusion_matrix.png)
 
@@ -300,7 +300,7 @@ Confusion Matrix được tạo từ 10.000 ảnh test. **Hàng biểu diễn l�
 - Coat → Pullover (63 ảnh).
 - Dress → Shirt (51 ảnh).
 
-### 10.3. Nhận xét so sánh
+### 11.3. Nhận xét so sánh
 
 CNN giảm số lỗi từ 1.166 xuống 780 ảnh (theo test accuracy mới). Các nhầm lẫn Pullover → Coat giảm từ cần đọc lại từ confusion matrix mới; Shirt → T-shirt/top giảm từ cần đọc lại từ confusion matrix mới; Pullover → Shirt giảm từ cần đọc lại từ confusion matrix mới. Tuy nhiên, Coat → Shirt tăng từ cần đọc lại từ confusion matrix mới. Như vậy CNN cải thiện tổng thể nhưng không cải thiện mọi cặp lớp.
 
